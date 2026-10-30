@@ -1,5 +1,6 @@
 """Deterministic task risk from structured contracts and changed paths."""
 import re
+import json
 
 SENSITIVE = re.compile(r'(?:^|[/_.-])(auth(?:entication|orization)?|oauth|mfa|rbac|acl|permissions?|security|crypto|crypt|encrypt|passwords?|tokens?|tenants?|billing|payments?|pagamento|cobran[cç]a|webhook|dispatch|lease|fenc(?:e|ing)|concurren\w*|migration\w*|migracao|migra[cç][aã]o)(?:[/_.-]|$)', re.I)
 DESTRUCTIVE = re.compile(r'\b(drop\s+(table|database)|truncate|destructive|destrutiv\w*|irrevers[ií]vel)\b',re.I)
@@ -26,3 +27,11 @@ def assess(task=None):
 def review_context(task):
     keys=('objective','acceptance','allowed_files','criticality','risk','difficulty','depends_on','review_findings','changed_files')
     return {k:task[k] for k in keys if k in task}
+
+
+def previous_review_findings(db,task_id):
+    """Implementation completion clears task.error; prior review findings are durable events."""
+    for row in db.execute("SELECT data FROM events WHERE task_id=? AND kind IN ('correction_requested','task_blocked')",(task_id,)):
+        error=str(json.loads(row[0]).get('error') or '')
+        if 'Revisão reprovou' in error or 'Regressão após revisão' in error:return True
+    return False

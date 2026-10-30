@@ -90,7 +90,7 @@
     },
     {
       "path": "orchestrator/core.py",
-      "prepared_sha256": "9f5a403253c0c254984f7efde0a3760ca1c5ae18aed71ea0abf3d083051c6ecc",
+      "prepared_sha256": "e579854f16359e472ea6ba37e9a00f9554df9c25577fe266176e1359ba0e7ad9",
       "live_source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/core.py",
       "expected_live_base_sha256": "502da2d2361b156b4dc646a4c89d7c4bf193a313e52a1e93f776452a77f92ea8",
       "base_export_sha256": "502da2d2361b156b4dc646a4c89d7c4bf193a313e52a1e93f776452a77f92ea8"
@@ -140,7 +140,7 @@
     },
     {
       "path": "orchestrator/task_risk.py",
-      "prepared_sha256": "1104dc08d0bf261a0970f3c72bd1888af2112a8d54435dc46a2555d57777f316"
+      "prepared_sha256": "1db394cd70d0ef46e7db3db368350d104ec893db52f65b8e905bf5d6b7844cff"
     },
     {
       "path": "policy/policy.mjs",
@@ -171,7 +171,7 @@
     },
     {
       "path": "tests/test_audit_hardening.py",
-      "prepared_sha256": "fa8d116fbe3f60581749d0184ac95ed6ab6d79b8100c9ee75e530be10c7b0e3b"
+      "prepared_sha256": "8c8d1a59e4266ddcb0f31aa3aa258ced4ba4c0eabc59828c477cb7540b1e4c40"
     },
     {
       "path": "tests/test_contingency_contract.py",

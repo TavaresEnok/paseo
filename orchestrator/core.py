@@ -485,7 +485,8 @@ def select(db, task, active):
     query.pop('reviewer_route', None)
     if task['phase']=='review':
         query['implementation_model']=task.get('model')
-        query['review_findings']=str(task.get('error') or '').startswith(('Revisão reprovou','Regressão após revisão'))
+        from .task_risk import previous_review_findings
+        query['review_findings']=previous_review_findings(db,task['id']) or str(task.get('error') or '').startswith(('Revisão reprovou','Regressão após revisão'))
         if task.get('cwd'):
             query['changed_files']=[name for name in (git(task['cwd'],'diff','--name-only','-z',task.get('base_commit') or 'HEAD')+'\x00'+git(task['cwd'],'ls-files','--others','--exclude-standard','-z')).split('\x00') if name]
     excluded = list(spec.get('excluded_models', []))

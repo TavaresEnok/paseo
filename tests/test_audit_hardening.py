@@ -2,7 +2,7 @@ import copy,importlib.util,json,sqlite3,tempfile,unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
-from orchestrator.task_risk import assess
+from orchestrator.task_risk import assess,previous_review_findings
 from orchestrator.manager_effort import choose
 from orchestrator.recovery_budget import charge,assert_recoverable
 from orchestrator.notifications import deliver
@@ -16,6 +16,10 @@ class RiskTests(unittest.TestCase):
   self.assertEqual(assess({'allowed_files':['ui/button.css'],'difficulty':2})['level'],'normal')
   self.assertEqual(choose('status',[],[{'id':'t','state':'running','spec':json.dumps({'criticality':'high'})}])['effort'],'medium')
   self.assertEqual(choose('continue',[{'id':'j','state':'running'}],[{'id':'t','state':'queued','spec':json.dumps({'criticality':'high'})}])['effort'],'high')
+ def test_review_findings_survive_cleared_task_error(self):
+  db=sqlite3.connect(':memory:');db.execute('CREATE TABLE events(task_id TEXT,kind TEXT,data TEXT)')
+  db.execute('INSERT INTO events VALUES(?,?,?)',('t','correction_requested',json.dumps({'error':'Revisão reprovou: autorização incorreta'})))
+  self.assertTrue(previous_review_findings(db,'t'));self.assertFalse(previous_review_findings(db,'other'))
  def test_reviewer_policy(self):
   limits=json.loads((ROOT/'config/model-limits.json').read_text());now=1000
   models=[]
