@@ -68,7 +68,14 @@ def work_agent(agent):
 
 def recorded_fallback(db, agent):
     labels = agent.get('labels') or {}
-    if labels.get('flow.supervisor.role') == 'fallback':
+    if labels.get('flow.supervisor.role') in {'fallback', 'temporary'}:
+        return True
+    # A staged replacement is visible before fallback_id is bound. Its signed
+    # chat identity must never become a second root route during that window.
+    has_tickets = db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='admission_tickets'").fetchone()
+    row = db.execute("SELECT chat_id FROM admission_tickets WHERE agent_id=? AND role='manager'",
+                     (agent.get('id'),)).fetchone() if has_tickets else None
+    if row and row['chat_id'] and row['chat_id'] != agent.get('id'):
         return True
     if str(labels.get('flow.supervisor.request') or '').endswith('-fallback'):
         return True

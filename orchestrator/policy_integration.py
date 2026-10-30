@@ -1049,6 +1049,21 @@ def resume_current_manager(db, route, current, key, catalog, limits):
     db.commit()
 
 
+def primary_return_effort(route, primary, selected, settings):
+    """Return to the public chat even after adaptive Sol changed its effort."""
+    from . import supervision
+    key = selected['provider'] + '/' + selected['id']
+    primary_key = str(primary.get('provider') or '') + '/' + str(primary.get('model') or '')
+    effort = supervision.thinking_of(primary)
+    adaptive = (key == 'codex/gpt-6.1-sol' and (settings.get('adaptive_effort') or {}).get('enabled')
+                and effort in {'medium','high'} and selected['thinking_option_id'] in {'medium','high'})
+    if (route['active_id'] != route['primary_id'] and key == settings.get('primary_model')
+            and primary_key == key and (effort == selected['thinking_option_id'] or adaptive)
+            and not supervision.busy(primary) and not primary.get('archivedAt')):
+        return effort
+    return None
+
+
 def reconcile_manager_route(db, route, agents, settings):
     """Policy-owned manager route. Returns True so the legacy switch does not also run."""
     import uuid
@@ -1122,7 +1137,9 @@ def reconcile_manager_route(db, route, agents, settings):
     current_effort = supervision.thinking_of(current) or settings.get("primary_thinking")
     adaptive_same = (key == 'codex/gpt-6.1-sol' and (settings.get('adaptive_effort') or {}).get('enabled')
                      and current_effort in {'medium','high'} and effort in {'medium','high'})
-    if current_key == key and (current_effort == effort or adaptive_same):
+    return_effort = primary_return_effort(route, primary, selected, settings)
+    return_primary = return_effort is not None
+    if current_key == key and (current_effort == effort or adaptive_same) and not return_primary:
         if adaptive_same:
             decision = {**decision, 'selected': {**selected, 'thinking_option_id': current_effort}}
         ensure_current_manager_ticket(db, str(chat_id), current, decision)
@@ -1137,8 +1154,8 @@ def reconcile_manager_route(db, route, agents, settings):
         if isinstance(pending, dict) and pending.get("request_key") == request_key:
             return True
     primary_key = str(primary.get("provider") or "") + "/" + str(primary.get("model") or "")
-    if (key == settings.get("primary_model") and effort == settings.get("primary_thinking")
-            and primary_key == key and supervision.thinking_of(primary) == effort):
+    if return_primary:
+        decision = {**decision, 'selected': {**selected, 'thinking_option_id': return_effort}}
         prompt = supervision.handoff(db, route, route["active_id"], key)
         message_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"supervisor-return-{route['primary_id']}-{generation}-{key}-{effort}"))
         ensure_current_manager_ticket(db, str(chat_id), primary, decision)
