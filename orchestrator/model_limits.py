@@ -15,7 +15,7 @@ def allowed_model(provider,model,limits=None):
     if provider=='codex-programmer':return bool(limits.get('programmer_account',{}).get('enabled')) and model=='gpt-6.1-terra'
     if provider in {'antigravity','antigravity2','antigravity3'}:
         from .policy_runtime import enabled_gemini
-        return provider in enabled_gemini(limits) and model in limits.get('gemini',{}).get('allowed_models',[])
+        return provider in enabled_gemini(limits) and (model in limits.get('gemini',{}).get('allowed_models',[]) or (provider=='antigravity2' and model=='claude-sonnet-5-5-medium' and (limits.get('antigravity_sonnet') or {}).get('enabled')))
     if provider=='codex':return model in limits['codex']['allowed_models']
     if provider=='opencode' and limits['grok'].get('transport')=='grok-cli':return False
     if provider in {'grok','xai','opencode'}:
@@ -73,6 +73,7 @@ def role_summary(limits=None):
     chain=[(program.get('model'),program.get('thinking_option'))]
     if program.get('fallback_allowed'):
         chain.extend([(program.get('fallback_model'),program.get('fallback_thinking_option')),(program.get('secondary_fallback_model'),program.get('secondary_fallback_thinking_option'))])
+    if (limits.get('antigravity_sonnet') or {}).get('enabled'):chain.append(('antigravity2/claude-sonnet-5-5-medium','medium'))
     emergency=program.get('emergency_original_account') or {}
     if emergency.get('enabled'):chain.append((emergency.get('model'),emergency.get('thinking_option')))
     route=' -> '.join(f'{model} ({effort})' for model,effort in chain if model)
@@ -81,11 +82,11 @@ def role_summary(limits=None):
         f"Gerente único por chat: {sup.get('primary_model')} ({sup.get('primary_thinking')}); reserva {sup.get('fallback_model')} ({sup.get('fallback_thinking')}).",
         ('Gerência adaptativa: Sol Médio no acompanhamento/distribuição; Alto em planejamento complexo, conflito de integração ou bloqueio técnico repetido. O controlador escolhe por turno e registra motivo; uma única sessão.' if (sup.get('adaptive_effort') or {}).get('enabled') else ''),
         'Revisor recebe contexto compacto, critérios e diff; evidência completa deve ser consultada quando o resumo for insuficiente. Notificações ordinárias próximas são agrupadas por chat; bloqueios são imediatos.',
-        f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra Médio só assume após esgotamento dos três; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
+        f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra Médio só assume após esgotamento de todos os programadores regulares; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
         'Codex programador usa conta isolada exclusivamente para programação; a conta original de gerência/revisão só pode programar na exceção emergencial Terra Médio expressamente habilitada. Somente Gemini conta 3 (antigravity2) habilitado.',
         f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} (Médio em tarefas normais; Alto conforme risco e criticidade quando revisão adaptativa estiver habilitada) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
         'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Terra dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
-        'Astra somente gerente temporário Médio quando Claude, Grok, a conta Terra dedicada (quando habilitada) e todos os Gemini habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
+        'Astra somente gerente temporário Médio quando Claude, Grok, a conta Terra dedicada (quando habilitada) e todos os modelos Antigravity habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
         'O gerente planeja, divide escopos independentes, delega, acompanha revisões e continua o backlog autorizado; não implementa. Retorno ao modelo primário somente em fronteira segura, sem interromper trabalhador saudável.',
         ('Orçamento de recuperação: detectar falhas repetidas sem progresso; não repetir recover quando orçamento esgotar. Preservar a tarefa e avisar o usuário; outras tarefas continuam. Extensão somente por operação humana explícita.' if (limits.get('recovery_budget') or {}).get('enabled') else ''),
         'Gerente mantém root/sudo autorizado. Trabalhadores executam somente na worktree isolada e encaminham necessidades administrativas ao gerente.',

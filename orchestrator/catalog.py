@@ -87,6 +87,9 @@ def build(inventory, usage):
                 gemini=evidence_entry(new2=True) if provider=='antigravity3' else gemini2 if provider=='antigravity2' else evidence_entry()
                 if native['id']=='gemini-3.8-flash-high' and gemini:
                     models.append(gemini)
+                if provider=='antigravity2' and native['id']=='claude-sonnet-5-5-medium' and (load_limits().get('antigravity_sonnet') or {}).get('enabled'):
+                    from .gemini_usage import sonnet_evidence
+                    models.append(sonnet_evidence())
                 continue
             models.append({
                 'id':native['id'],'provider':provider,'label':native.get('label'),'description':native.get('description'),

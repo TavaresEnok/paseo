@@ -27,6 +27,8 @@ class ContingencyContract(unittest.TestCase):
   for p,m in pairs.items():
    available=p in {'codex',recovered}
    models.append({'id':m,'provider':p,'available':True,'authenticated':True,'cost':{'kind':'subscription','verified':True,'additional_cost':0},'quota':{'observed_at':time.time(),'source':'official agy response' if p=='antigravity2' else 'fixture','status':'available' if available else 'exhausted','windows':[{'remaining_fraction':.5 if available else 0}]}})
+  if self.limits.get('antigravity_sonnet',{}).get('enabled'):
+   models.append({**models[-1], 'id':'claude-sonnet-5-5-medium','quota':{**models[-1]['quota'],'status':'exhausted','windows':[{'remaining_fraction':0}]}})
   return {'models':models}
  def grant(self,chat,task,expected='codex/gpt-6.1-terra'):
   self.client.register(chat,[{'task_id':task,'role':'programmer','request_id':task,'generation':1,'phase':'implement'}])
@@ -54,6 +56,29 @@ class ContingencyContract(unittest.TestCase):
   # An unconfirmed end must not free a still-running worker's capacity.
   bad=self.client.release(grants[0]['lease_id'],{'kind':'completed','confirmed':False,'agent_id':agent});self.assertFalse(bad['released'])
   good=self.client.release(grants[0]['lease_id'],{'kind':'completed','confirmed':True,'agent_id':agent});self.assertTrue(good['released'])
+ def test_antigravity_sonnet_own_quota_broker_and_native_gate(self):
+  catalog=self.catalog();partner=catalog['models'][-1]
+  partner['quota'].update(status='available',windows=[{'remaining_fraction':1}])
+  self.client.observe(catalog,self.limits)
+  expected='antigravity2/claude-sonnet-5-5-medium'
+  with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):
+   selected=select_for_role(catalog,{'specialty':'coding'},self.limits)['selected']
+  self.assertEqual(selected['key'],expected)
+  grant=self.grant('chat-sonnet','task-sonnet',expected);self.assertTrue(grant['granted'],grant)
+  agent=str(uuid.uuid4());self.client.bind(grant['lease_id'],agent)
+  cwd=self.root/'work';cwd.mkdir()
+  ticket=sign_ticket({'role':'programmer','provider':'antigravity2','model':'claude-sonnet-5-5-medium','effort':'medium','agent_id':agent,'chat_id':'chat-sonnet','request_id':'task-sonnet','cwd':str(cwd),'decision_fp':'test'},self.token)
+  admission=self.root/'admission.sqlite3';db=sqlite3.connect(admission);db.execute('CREATE TABLE tickets(agent_id TEXT,ticket_json TEXT)');db.execute('INSERT INTO tickets VALUES(?,?)',(agent,json.dumps(ticket)));db.commit();db.close()
+  flow=self.root/'flow.sqlite3';db=sqlite3.connect(flow);db.execute('CREATE TABLE capacity_leases(agent_id TEXT,request_id TEXT,role TEXT,chat_id TEXT,status TEXT)');db.execute('INSERT INTO capacity_leases VALUES(?,?,?,?,?)',(agent,'task-sonnet','programmer','chat-sonnet','held'));db.commit();db.close()
+  (self.root/'limits.json').write_text(json.dumps(self.limits))
+  env={**os.environ,'PASEO_MODEL_LIMITS':str(self.root/'limits.json'),'PASEO_ADMISSION_DB':str(admission),'PASEO_FLOW_DB':str(flow),'PASEO_CAPACITY_TOKEN_FILE':str(self.root/'token'),'PASEO_POLICY_FILE':str(ROOT/'config/profiles.json'),'PASEO_AUTONOMY_FILE':str(ROOT/'config/autonomy.json'),'PASEO_POLICY_ROOTS':str(cwd),'PASEO_HOLD_FILE':str(self.root/'nonexistent-hold'),'PASEO_AGENT_ID':agent}
+  script="import {assertTurnAdmission} from './policy/policy.mjs';import assert from 'node:assert/strict';assert.equal(assertTurnAdmission(process.env.PASEO_AGENT_ID,'antigravity2','claude-sonnet-5-5-medium','medium'),'admitted');assert.throws(()=>assertTurnAdmission(process.env.PASEO_AGENT_ID,'antigravity2','claude-sonnet-5-5-medium','high'));"
+  subprocess.run(['node','--input-type=module','-e',script],env=env,cwd=ROOT,check=True,capture_output=True,text=True)
+  import importlib.util
+  spec=importlib.util.spec_from_file_location('isolated',ROOT/'native/isolated-provider.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  self.assertEqual(m.assert_cli_admission('antigravity2',['--model','claude-sonnet-5-5-medium','--effort','medium'],env),'programmer')
+  for args in [['--model','gemini-3.8-flash-high','--effort','high'],['--model','claude-sonnet-5-5-medium','--effort','high']]:
+   with self.assertRaises(SystemExit):m.assert_cli_admission('antigravity2',args,env)
  def test_recovery_changes_new_work_preserves_running_lease(self):
   self.client.observe(self.catalog(),self.limits);g=self.grant('chat','emergency');self.assertTrue(g['granted'],g)
   self.client.bind(g['lease_id'],'running-emergency-agent')

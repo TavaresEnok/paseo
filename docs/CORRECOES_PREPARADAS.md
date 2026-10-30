@@ -40,3 +40,14 @@ O host tinha o pool padrão Docker ocupado e não apresentava a chain DOCKER-USE
 Foi encontrado e corrigido um deadlock existente: `pause()` chamava `_pause()`, ambos serialized, e tentava adquirir flock por um segundo descritor. A exclusão mantém o lock entre processos, mas reaproveita a posse nas chamadas aninhadas da mesma thread. Há regressão executada em subprocesso com timeout.
 
 Os dois trabalhos em curso receberam checkpoints e pausa administrativa. Após reload e confirmação de arquivamento dos executores anteriores, foram retomados pelo controlador nas mesmas worktrees, sem extensão de tentativas. Confirmados programadores ativos nos planos NexoISP `ac5776ea85cb` e Webchat `4e5353155665`, em `paseo-workers`, sem erro nativo no momento da verificação. A recuperação inicial aguardou o carregamento da sessão antiga; não descartou recibos incertos.
+
+
+## Sonnet trabalhador via Antigravity — aplicado em 30/10/2026
+
+Adicionado `antigravity2/claude-sonnet-5-5-medium` após Gemini e antes de Terra emergencial. Mesmo OAuth, Docker, worktree e bridge; nenhuma nova conta, gerência ou dispatcher. Gemini mantém sua chave histórica de evidência; Sonnet tem chave completa por modelo, SQLite de uso próprio e publicação de esgotamento específica no broker. A consulta oficial `/usage` confirmou grupo Gemini separado do grupo Claude/GPT; ambos os limites do grupo Claude/GPT estavam em 100% na ativação. Esse valor é uma observação do momento, não saldo permanente. Sem coletor periódico novo: execuções atualizam saúde/consumo e a recuperação usa o mecanismo limitado existente.
+
+Wrapper fixa modelo/esforço exatos e recusa créditos Google adicionais. Ticket assinado, gate nativo e runner conferem Flash/High ou Sonnet/Medium; nenhuma elevação autônoma. A revisão de implementação Sonnet prefere Sol quando GPT não está esgotado, em sessão independente; sem GPT preserva revisão Sonnet independente do Claude Code.
+
+Verificação: 23 testes Python locais (incluindo broker HTTP/SQLite, ticket HMAC, gate JS, runner, quota separada, reserva emergencial e revisão adaptativa), sintaxe Python/Node e descoberta no catálogo autenticado. Não houve inferência artificial. A fila foi retida brevemente; a revisão em curso terminou normalmente e todos os agentes estavam ociosos antes do reload. Planos pausados/bloqueados mantiveram seus estados.
+
+Backup remoto: `/home/enok/.local/state/paseo-backups/antigravity-sonnet-20261030T191123Z`. Broker compartilhado atualizado nos mesmos módulos, mantendo leases e banco. A alteração de política pertence ao NexoISP; o daemon do principal não foi alterado.

@@ -19,3 +19,20 @@ def evidence_entry(account2=False, new2=False):
   'quota':{'status':status,'observed_at':observed,'source':'official agy response',
            'windows':[],'message':(message or 'quota exhausted') if status=='exhausted' else ''},
   'restrictions':{'allowed':True,'notes':'OAuth subscription only; effort encoded in model ID'}}
+
+
+def sonnet_evidence():
+ """Partner-model evidence never borrows Gemini quota or Claude Code quota."""
+ path=core.STATE/'evidence/antigravity-sonnet-usage.sqlite3'
+ status='unknown';observed=None;message='Saldo desconhecido; primeira execução fará a confirmação.'
+ if path.exists():
+  with sqlite3.connect('file:'+str(path)+'?mode=ro',uri=True) as db:
+   row=db.execute('SELECT status,at,message FROM health WHERE id=1').fetchone()
+  if row:status,observed,message=row
+ return {'id':'claude-sonnet-5-5-medium','provider':'antigravity2','label':'Sonnet 5.5 Médio — Antigravity conta 3',
+  'available':True,'authenticated':True,'observed_at':observed,'mode':'full-access',
+  'safe_thinking_options':['medium'],'roles':['programmer-antigravity-sonnet'],
+  'preferred_specialties':['backend','coding','frontend','testing','debugging','advanced','architecture','utility','reasoning'],
+  'cost':{'kind':'subscription','verified':True,'additional_cost':0,'source':'existing account OAuth; wrapper enforces no API override or AI credit overages'},
+  'quota':{'status':status,'observed_at':observed,'source':'official agy response','windows':[], 'message':message or ''},
+  'restrictions':{'allowed':True,'notes':'programmer only; Medium; model-specific quota; same account as Gemini'}}

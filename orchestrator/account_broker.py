@@ -17,10 +17,10 @@ from pathlib import Path
 
 try:
     from .account_client import CapacityUnavailable
-    from .policy_runtime import absorb_catalog, evaluate
+    from .policy_runtime import absorb_catalog, evaluate, OBSERVATION_KEYS
 except ImportError:
     from account_client import CapacityUnavailable
-    from policy_runtime import absorb_catalog, evaluate
+    from policy_runtime import absorb_catalog, evaluate, OBSERVATION_KEYS
 
 PROGRAMMER_CAP = 4
 REVIEWER_CAP = 2
@@ -1022,7 +1022,7 @@ def _counts(conn):
 def _evidence_of(state):
     observations = state.get("observations") if isinstance(state.get("observations"), dict) else {}
     evidence = {}
-    for name in PROVIDERS:
+    for name in OBSERVATION_KEYS:
         current = observations.get(name)
         if isinstance(current, dict) and current.get("status") in {"available", "exhausted"}:
             evidence[name] = {"status": current["status"], "observed_at": current.get("observed_at")}

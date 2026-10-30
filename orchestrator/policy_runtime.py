@@ -11,6 +11,8 @@ import datetime
 import re
 
 PROVIDERS = ("codex-programmer", "codex", "claude", "grok", "antigravity", "antigravity2", "antigravity3")
+ANTIGRAVITY_SONNET_KEY = "antigravity2/claude-sonnet-5-5-medium"
+OBSERVATION_KEYS = PROVIDERS + (ANTIGRAVITY_SONNET_KEY,)
 DEFAULT_MAX_AGE = 300.0
 DEFAULT_MIN_REMAINING = 0.01
 
@@ -77,6 +79,16 @@ def note_exhaustion(state, provider, timestamp, reason) -> dict:
     return base
 
 
+def enabled_sonnet(limits):
+    cfg=limits.get("antigravity_sonnet") or {}
+    return bool(cfg.get("enabled") and "antigravity2" in enabled_gemini(limits))
+
+
+def quota_key(value):
+    """Gemini keeps its historical account key; partner model has separate evidence."""
+    return ANTIGRAVITY_SONNET_KEY if value == ANTIGRAVITY_SONNET_KEY else str(value or "").split("/",1)[0]
+
+
 def enabled_gemini(limits):
     cfg=limits.get('gemini') or {}
     if not cfg.get('enabled'):return set()
@@ -92,7 +104,7 @@ def absorb_catalog(state, catalog, limits, *, now=None) -> dict:
     working = _blank_state(state)
     _ensure_observations(working)
     raw = _classify_catalog(catalog, moment, max_age, minimum)
-    for name in PROVIDERS:
+    for name in OBSERVATION_KEYS:
         seen = raw[name]
         if seen["status"] in {"available", "exhausted"}:
             _accept(working, name, seen["status"], seen["observed_at"], seen["reason"])
@@ -101,14 +113,14 @@ def absorb_catalog(state, catalog, limits, *, now=None) -> dict:
         if record['status']=='available' and not _is_fresh(record['observed_at'],moment,max_age):
             effective[provider]={**record,'status':'unknown'}
     gpt_only = _mode(working, effective)
-    if any(effective[name]["status"] != "exhausted" for name in enabled_gemini(limits)) or ((limits.get("programmer_account") or {}).get("enabled") and effective["codex-programmer"]["status"] != "exhausted"):
+    if any(effective[name]["status"] != "exhausted" for name in enabled_gemini(limits)) or (enabled_sonnet(limits) and effective[ANTIGRAVITY_SONNET_KEY]["status"] != "exhausted") or ((limits.get("programmer_account") or {}).get("enabled") and effective["codex-programmer"]["status"] != "exhausted"):
         gpt_only = False
     working["account_mode"] = "gpt_only" if gpt_only else "normal"
     return {
         "state": working,
         "evidence": {
             name: {"status": effective[name]["status"], "observed_at": effective[name]["observed_at"]}
-            for name in PROVIDERS
+            for name in OBSERVATION_KEYS
         },
         "gpt_only": gpt_only,
         "account_mode": working["account_mode"],
@@ -121,21 +133,23 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
     absorbed = absorb_catalog(state, catalog, limits, now=moment)
     working = absorbed["state"]
     effective = {
-        name: absorbed["evidence"][name] for name in PROVIDERS
+        name: absorbed["evidence"][name] for name in OBSERVATION_KEYS
     }
     gpt_only = absorbed["gpt_only"]
     normalized = str(role or '').strip().lower()
     # Only programming may attempt recovery; manager return still needs positive evidence.
-    for provider in (enabled_gemini(limits) if normalized=='programmer' else set()):
+    for provider in ((enabled_gemini(limits) | ({ANTIGRAVITY_SONNET_KEY} if enabled_sonnet(limits) else set())) if normalized=='programmer' else set()):
         record=working.get('observations',{}).get(provider) or {}
         if effective[provider]['status']=='exhausted' and moment>=recovery_after(record,limits):
             effective[provider]={**effective[provider],'status':'recovery_due'}
     normalized = str(role or "").strip().lower()
     previous = working["decisions"].get(normalized)
     previous_key = previous.get("model_key") if isinstance(previous, dict) else None
-    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")))
+    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits))
     if normalized == "manager" and choice["model_key"] == SOL_HIGH[0] and (limits.get("supervision") or {}).get("primary_thinking") == "medium":
         choice = _chosen(SOL_MEDIUM, "manager_primary_sol_medium")
+    if normalized == "reviewer" and implementation_model == ANTIGRAVITY_SONNET_KEY and choice["model_key"] == SONNET_HIGH[0] and effective["codex"]["status"] != "exhausted":
+        choice = _chosen(SOL_MEDIUM, "reviewer_independent_sol_for_antigravity_sonnet")
     risk = None
     adaptive_review=(limits.get('review') or {}).get('adaptive_effort') or {}
     if normalized == 'reviewer' and choice['model_key'] == SOL_MEDIUM[0] and adaptive_review.get('enabled'):
@@ -190,13 +204,13 @@ def _mode(working, effective):
     )
 
 
-def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False):
+def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False, sonnet_enabled=False):
     codex = effective["codex"]["status"]
     claude = effective["claude"]["status"]
     grok = effective["grok"]["status"]
     if role == "manager":
         gemini_exhausted = (not gemini_enabled or not gemini1_enabled or effective["antigravity"]["status"] == "exhausted") and (not gemini2_enabled or effective["antigravity2"]["status"] == "exhausted") and (not gemini3_enabled or effective["antigravity3"]["status"] == "exhausted")
-        other_programmers_exhausted = gemini_exhausted and (not programmer_account or effective["codex-programmer"]["status"] == "exhausted")
+        other_programmers_exhausted = gemini_exhausted and (not sonnet_enabled or effective[ANTIGRAVITY_SONNET_KEY]["status"] == "exhausted") and (not programmer_account or effective["codex-programmer"]["status"] == "exhausted")
         if codex == "available" and claude == "exhausted" and grok == "exhausted" and other_programmers_exhausted:
             return _chosen(ASTRA_MEDIUM, "manager_astra_medium")
         if (
@@ -218,19 +232,20 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
         if gemini_enabled and gemini1_enabled: regular.append(GEMINI_HIGH)
         if gemini_enabled and gemini3_enabled: regular.append(GEMINI_NEW2_HIGH)
         if gemini_enabled and gemini2_enabled: regular.append(GEMINI2_HIGH)
+        if sonnet_enabled: regular.append((ANTIGRAVITY_SONNET_KEY, "medium"))
         if emergency_original:
             # Regular contractors keep their route until exhausted. Only the
             # emergency original account yields while it still has quota.
             for pair in regular:
-                if previous_key == pair[0] and effective[pair[0].split('/')[0]]['status'] not in {'exhausted','recovery_due'}:
+                if previous_key == pair[0] and effective[quota_key(pair[0])]['status'] not in {'exhausted','recovery_due'}:
                     return _chosen(pair, 'programmer_keep_regular_until_exhausted')
             if previous_key == EMERGENCY_TERRA[0]:
                 for pair in regular:
-                    if effective[pair[0].split('/')[0]]['status'] == 'available':
+                    if effective[quota_key(pair[0])]['status'] == 'available':
                         return _chosen(pair, 'programmer_return_from_emergency_positive_quota')
                 # recovery_due permits an existing bounded Gemini recovery probe;
                 # elapsed time is not recorded as positive quota evidence.
-                if not any(effective[pair[0].split('/')[0]]['status']=='recovery_due' for pair in regular):
+                if not any(effective[quota_key(pair[0])]['status']=='recovery_due' for pair in regular):
                     return _chosen(EMERGENCY_TERRA, 'programmer_emergency_waiting_regular_recovery') if codex == 'available' else _queued('programmer_accounts_exhausted')
         if grok != "exhausted":
             return _chosen(GROK_MEDIUM, "programmer_primary_grok_medium")
@@ -242,7 +257,9 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
             return _chosen(GEMINI_NEW2_HIGH, "programmer_fallback_gemini_account2_high")
         if gemini_enabled and gemini2_enabled and effective["antigravity2"]["status"] != "exhausted":
             return _chosen(GEMINI2_HIGH, "programmer_fallback_gemini_account3_high")
-        if emergency_original and codex == 'available' and all(effective[pair[0].split('/')[0]]['status']=='exhausted' for pair in regular):
+        if sonnet_enabled and effective[ANTIGRAVITY_SONNET_KEY]['status'] != 'exhausted':
+            return _chosen((ANTIGRAVITY_SONNET_KEY, 'medium'), 'programmer_fallback_antigravity_sonnet_medium')
+        if emergency_original and codex == 'available' and all(effective[quota_key(pair[0])]['status']=='exhausted' for pair in regular):
             return _chosen(EMERGENCY_TERRA, 'programmer_emergency_original_terra_medium')
         if programmer_account:
             return _queued("programmer_accounts_exhausted")
@@ -327,7 +344,7 @@ def _ensure_observations(working):
     if not isinstance(exhaustions, dict):
         exhaustions = {}
     for name, record in list(exhaustions.items()):
-        if name not in PROVIDERS or not isinstance(record, dict):
+        if name not in OBSERVATION_KEYS or not isinstance(record, dict):
             continue
         at = _number(record.get("at"))
         if at is None:
@@ -349,7 +366,7 @@ def _ensure_observations(working):
 
 def _effective(working):
     result = {}
-    for name in PROVIDERS:
+    for name in OBSERVATION_KEYS:
         current = working["observations"].get(name)
         if (
             isinstance(current, dict)
@@ -363,13 +380,13 @@ def _effective(working):
 
 
 def _classify_catalog(catalog, now, max_age, minimum):
-    found = {name: [] for name in PROVIDERS}
+    found = {name: [] for name in OBSERVATION_KEYS}
     for model in _models(catalog):
-        provider = _provider_name(model.get("provider"))
+        provider = _provider_name(quota_key(str(model.get("provider"))+"/"+str(model.get("id"))))
         if provider is None:
             continue
         found[provider].append(_classify_model(model, now, max_age, minimum))
-    return {name: _reduce_provider(found[name]) for name in PROVIDERS}
+    return {name: _reduce_provider(found[name]) for name in OBSERVATION_KEYS}
 
 
 def _reduce_provider(observations):
@@ -477,6 +494,8 @@ def _blank_state(state):
 
 def _provider_name(value):
     text = str(value or "").strip().lower()
+    if text == ANTIGRAVITY_SONNET_KEY:
+        return text
     if "/" in text:
         text = text.split("/", 1)[0]
     if text in PROVIDERS:

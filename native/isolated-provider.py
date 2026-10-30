@@ -238,8 +238,15 @@ def assert_cli_admission(provider, provider_args, env=None):
                     raise SystemExit('Gerente CLI não é o dono vigente.')
             else:
                 raise SystemExit('Papel CLI inválido.')
-        if provider == 'antigravity2' and (ticket.get('role')!='programmer' or ticket.get('model')!='gemini-3.8-flash-high' or ticket.get('effort')!='high'):
-            raise SystemExit('Gemini requires programmer / Flash / high.')
+        if provider == 'antigravity2' and (ticket.get('role')!='programmer' or (ticket.get('model'),ticket.get('effort')) not in {('gemini-3.8-flash-high','high'),('claude-sonnet-5-5-medium','medium')}):
+            raise SystemExit('Antigravity requires programmer / Flash High or Sonnet Medium.')
+        if provider == 'antigravity2':
+            for flag, expected in [('--model',ticket['model']),('--effort',ticket['effort'])]:
+                values=[]
+                for i,arg in enumerate(provider_args):
+                    if arg==flag:values.append(provider_args[i+1] if i+1<len(provider_args) else None)
+                    elif arg.startswith(flag+'='):values.append(arg.split('=',1)[1])
+                if values != [expected]:raise SystemExit('Antigravity CLI selection differs from signed ticket.')
         if provider == 'codex-programmer' and (ticket.get('role') != 'programmer' or ticket.get('model') != 'gpt-6.1-terra' or ticket.get('effort') != 'medium'):
             raise SystemExit('Dedicated Codex requires programmer / GPT-6.1 Terra / medium.')
         return ticket.get('role')

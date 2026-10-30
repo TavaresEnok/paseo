@@ -533,7 +533,7 @@ def prepare_native_launch(db, task, job, selection, options):
     lease_id = held["lease_id"] if held else None
     # Recovery may occupy only one slot for the exhausted Gemini account.
     selected_evidence=(selection or {}).get('evidence') or {}
-    if (selected_evidence.get(provider) or {}).get('status')=='recovery_due':
+    if (selected_evidence.get(runtime().quota_key(expected_key)) or {}).get('status')=='recovery_due':
         other=db.execute("SELECT 1 FROM capacity_leases WHERE provider=? AND task_id<>? AND status!='released'",(provider,task['id'])).fetchone()
         if other:
             from .core import ModelUnavailable
@@ -821,7 +821,9 @@ def adopt_running_gpt(db):
 
 def _publish_exhaustion(provider, observed_at, message="quota exhausted"):
     """Push one declared quota fact to the shared account. No catalog poll required."""
-    ident = {"codex-programmer": "gpt-6.1-terra", "codex": "gpt-6.1-sol", "claude": "claude-sonnet-5-5", "grok": "grok-4.7", "antigravity": "gemini-3.8-flash-high", "antigravity3": "gemini-3.8-flash-high", "antigravity2": "gemini-3.8-flash-high"}.get(provider)
+    model_key = provider
+    provider = provider.split("/",1)[0]
+    ident = "claude-sonnet-5-5-medium" if model_key == runtime().ANTIGRAVITY_SONNET_KEY else {"codex-programmer": "gpt-6.1-terra", "codex": "gpt-6.1-sol", "claude": "claude-sonnet-5-5", "grok": "grok-4.7", "antigravity": "gemini-3.8-flash-high", "antigravity3": "gemini-3.8-flash-high", "antigravity2": "gemini-3.8-flash-high"}.get(provider)
     if not ident:
         return
     try:
@@ -860,13 +862,14 @@ def record_role_exhaustion(db, task, role, message):
         return None
     chat_id = chat_of(db, task)
     moment = time.time()
-    state = module.note_exhaustion(load_state(db, chat_id, role), provider, moment, message)
+    evidence_key = module.quota_key(failed)
+    state = module.note_exhaustion(load_state(db, chat_id, role), evidence_key, moment, message)
     save_state(db, chat_id, role, state, {"reason": "explicit_quota", "provider": provider, "model_key": failed})
-    try:_publish_exhaustion(provider,moment,message)
+    try:_publish_exhaustion(evidence_key,moment,message)
     except Exception as error:
         from . import core
         db.execute("CREATE TABLE IF NOT EXISTS pending_quota_publications(provider TEXT PRIMARY KEY,at REAL NOT NULL,message TEXT)")
-        db.execute('INSERT OR REPLACE INTO pending_quota_publications VALUES(?,?,?)',(provider,moment,message))
+        db.execute('INSERT OR REPLACE INTO pending_quota_publications VALUES(?,?,?)',(evidence_key,moment,message))
         core.event(db,'quota_publication_deferred',{'provider':provider,'error':str(error)[-300:]},_field(task,'job_id'),_field(task,'id'))
     return provider
 

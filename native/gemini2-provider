@@ -1,5 +1,5 @@
 #!/home/enok/.local/bin/python3.12
-"""Official Antigravity OAuth CLI; pin Gemini High and record usage without prompt text."""
+"""Official Antigravity OAuth CLI; pin approved Gemini/Sonnet models and record usage without prompt text."""
 import json,os,signal,sqlite3,subprocess,sys,time,re
 from pathlib import Path
 ROOT=Path('/home/enok/srv_projetos/orchestration/evidence')
@@ -14,10 +14,24 @@ if settings.exists() and json.loads(settings.read_text()).get('modelProvider'):
 if '--settings' in args:sys.exit('Per-session provider overrides are blocked.')
 probe=bool(args and args[0] in ['models','--version','--help','help'])
 if probe:os.execve('/home/enok/.local/bin/agy',['agy']+args,env)
-for flag,required in [('--model','gemini-3.8-flash-high'),('--effort','high')]:
- if flag in args:
-  if args[args.index(flag)+1]!=required:sys.exit('Gemini restricted to 3.8 Flash High.')
- else:args.extend([flag,required])
+# One authenticated account, separate model quotas and exact effort ceilings.
+allowed={'gemini-3.8-flash-high':'high','claude-sonnet-5-5-medium':'medium'}
+def option(flag, default):
+ positions=[i for i,a in enumerate(args) if a==flag or a.startswith(flag+'=')]
+ if len(positions)>1:sys.exit('Duplicate model/effort flags blocked.')
+ if not positions:
+  args.extend([flag,default]);return default
+ i=positions[0]
+ if args[i].startswith(flag+'='):return args[i].split('=',1)[1]
+ if i+1>=len(args):sys.exit('Missing model/effort value.')
+ return args[i+1]
+model=option('--model','gemini-3.8-flash-high')
+if model not in allowed:sys.exit('Antigravity permits only Flash High or Sonnet 5.5 Medium.')
+effort=option('--effort',allowed[model])
+if effort!=allowed[model]:sys.exit('Model effort differs from approved policy.')
+if settings.exists() and json.loads(settings.read_text()).get('useG1Credits') is True:
+ sys.exit('Additional AI credit usage must be disabled.')
+if model=='claude-sonnet-5-5-medium':DB=ROOT/'antigravity-sonnet-usage.sqlite3'
 ROOT.mkdir(parents=True,exist_ok=True)
 def connect():
  db=sqlite3.connect(DB,timeout=10)

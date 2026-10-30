@@ -210,5 +210,16 @@
     "max_active_seconds": 14400,
     "max_same_failure": 3,
     "manual_extension_allowed": true
+  },
+  "antigravity_sonnet": {
+    "enabled": true,
+    "provider": "antigravity2",
+    "model": "claude-sonnet-5-5-medium",
+    "thinking": "medium",
+    "role": "programmer_only",
+    "quota_scope": "model",
+    "after": "antigravity2/gemini-3.8-flash-high",
+    "before": "codex/gpt-6.1-terra",
+    "subscription_only": true
   }
 }

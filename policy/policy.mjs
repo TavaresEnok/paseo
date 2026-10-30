@@ -54,7 +54,7 @@ export function assertModelAllowed(provider, model) {
         (provider !== 'grok' || proof.credential_source === 'grok_cli')))
       throw new Error('Grok bloqueado: franquia/custo zero não verificado ou informação vencida.');
   }
-  if (['antigravity','antigravity2','antigravity3'].includes(provider) && !(limits.gemini?.enabled && (!limits.gemini.enabled_provider_ids || limits.gemini.enabled_provider_ids.includes(provider)) && limits.gemini.allowed_models.includes(resolved))) throw new Error('Antigravity limitado a Gemini 3.8 Flash Alto.');
+  if (['antigravity','antigravity2','antigravity3'].includes(provider) && !(limits.gemini?.enabled && (!limits.gemini.enabled_provider_ids || limits.gemini.enabled_provider_ids.includes(provider)) && (limits.gemini.allowed_models.includes(resolved) || (provider === 'antigravity2' && limits.antigravity_sonnet?.enabled && resolved === 'claude-sonnet-5-5-medium')))) throw new Error('Modelo Antigravity fora da política aprovada.');
   return resolved;
 }
 export function assertThinkingAllowed(value) {
@@ -139,7 +139,7 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
     throw new Error('Programação Grok exige esforço medium no ticket.');
   if ((provider === 'grok' || ticket.provider === 'grok') && !['programmer', 'reviewer'].includes(ticket.role))
     throw new Error('Grok não é gerente nesta política.');
-  if (['antigravity','antigravity2','antigravity3'].includes(ticket.provider) && (ticket.role !== 'programmer' || ticket.model !== 'gemini-3.8-flash-high' || ticket.effort !== 'high')) throw new Error('Gemini somente programador Alto.');
+  if (['antigravity','antigravity2','antigravity3'].includes(ticket.provider) && (ticket.role !== 'programmer' || !((ticket.model === 'gemini-3.8-flash-high' && ticket.effort === 'high') || (ticket.provider === 'antigravity2' && readModelLimits().antigravity_sonnet?.enabled && ticket.model === 'claude-sonnet-5-5-medium' && ticket.effort === 'medium')))) throw new Error('Antigravity somente programador Flash Alto ou Sonnet Médio.');
   if (ticket.provider === 'codex-programmer' && (ticket.role !== 'programmer' || ticket.model !== 'gpt-6.1-terra' || ticket.effort !== 'medium')) throw new Error('Conta Codex dedicada somente programador Terra Médio.');
   return 'admitted';
 }
@@ -306,7 +306,7 @@ function admittedThinking(config, mark) {
   }
   if (mark === 'admitted' && ['antigravity','antigravity2','antigravity3'].includes(config.provider)) {
     assertModelAllowed(config.provider, config.model);
-    if (config.thinkingOptionId != null && config.thinkingOptionId !== 'high') throw new Error('Gemini esforço high obrigatório.');
+    if (config.thinkingOptionId != null && config.thinkingOptionId !== (config.model === 'claude-sonnet-5-5-medium' ? 'medium' : 'high')) throw new Error('Esforço Antigravity divergente do modelo.');
     return;
   }
   if (mark === 'admitted' && config.provider === 'grok') {
