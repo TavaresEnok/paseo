@@ -32,7 +32,7 @@ O sistema transforma pedidos em planos, delega programação a agentes independe
 | Papel | Principal | Substituição |
 | --- | --- | --- |
 | Gerente | GPT-6.1 Sol Médio; Alto por turno para planejamento complexo/conflitos/bloqueios técnicos | Sonnet 5.5 Alto; Astra Médio somente na exceção definida na política |
-| Programador | Grok 4.7 Médio | GPT-6.1 Terra Médio, conta exclusiva → Gemini 3.8 Flash Alto, conta lógica 3 → Sonnet 5.5 Médio via Antigravity, mesma conta → Terra Médio da conta original como reserva emergencial → aguardar cota |
+| Programador | Grok 4.7 Médio | GPT-6.1 Terra Alto, conta exclusiva → Gemini 3.8 Flash Alto, conta lógica 3 → Sonnet 5.5 Médio via Antigravity, mesma conta → Terra Médio da conta original como reserva emergencial → aguardar cota |
 | Revisor | Sonnet 5.5 Alto | Sol Médio nas tarefas normais e Alto conforme criticidade/risco; alternativa Grok Alto conforme política |
 
 O gerente, o programador e o revisor usam sessões separadas. O Codex programador tem credenciais separadas da conta Codex de gerência/revisão. A conta lógica Gemini 3 corresponde ao provedor `antigravity2` e ao diretório histórico `account2`; esse nome não significa que a conta lógica 2 continua habilitada. O arquivo `config/model-limits.json` é a referência executável completa, inclusive exceções, recuperação de cota e concorrência.
@@ -46,3 +46,5 @@ Veja [INSTALACAO.md](docs/INSTALACAO.md) para as dependências e a disposição 
 `installed-paseo/` contém JavaScript distribuído e declarações de tipos de pacotes instalados, incluindo a interface web distribuída. Não representa o código TypeScript/React original completo do upstream. Dependências de terceiros em `node_modules`, binários de provedores e caches não são versionados. Consulte [THIRD_PARTY.md](THIRD_PARTY.md).
 
 Sonnet via Antigravity é somente programador, em Médio, com evidência de cota separada de Gemini e de Claude Code. Quando Sonnet implementa, Sol faz a revisão se a conta GPT estiver disponível, com esforço adaptativo por risco. Saída de créditos adicionais Google permanece desativada.
+
+Experimento ativo: Terra Alto somente na conta dedicada; Terra da conta original permanece Médio. `deploy/worker-comparison.py` grava snapshots cumulativos de tokens por modelo/esforço e de retrabalho atribuído ao implementador, sem chamar IA. A comparação futura com Sol Médio exige nova fase e tarefas de complexidade semelhante.

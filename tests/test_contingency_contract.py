@@ -32,7 +32,14 @@ class ContingencyContract(unittest.TestCase):
   return {'models':models}
  def grant(self,chat,task,expected='codex/gpt-6.1-terra'):
   self.client.register(chat,[{'task_id':task,'role':'programmer','request_id':task,'generation':1,'phase':'implement'}])
-  return self.client.acquire(chat,task,'programmer',task,{'generation':1,'requested_model_key':expected,'requested_thinking_option':'medium' if 'gemini' not in expected else 'high'})
+  return self.client.acquire(chat,task,'programmer',task,{'generation':1,'requested_model_key':expected,'requested_thinking_option':self.limits['programmer_account']['thinking'] if expected.startswith('codex-programmer/') else 'medium' if 'gemini' not in expected else 'high'})
+ def test_dedicated_account_uses_configured_high(self):
+  catalog=self.catalog('codex-programmer');self.client.observe(catalog,self.limits)
+  with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):
+   selected=select_for_role(catalog,{'specialty':'coding'},self.limits)['selected']
+  self.assertEqual(selected['thinking_option_id'],'high')
+  grant=self.grant('terra-high-chat','terra-high-task','codex-programmer/gpt-6.1-terra')
+  self.assertTrue(grant['granted'],grant);self.assertEqual(grant['thinking_option'],'high')
  def test_original_shared_cap_and_native_admission(self):
   catalog=self.catalog();self.client.observe(catalog,self.limits)
   with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):

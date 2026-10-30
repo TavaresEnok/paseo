@@ -51,3 +51,12 @@ Wrapper fixa modelo/esforço exatos e recusa créditos Google adicionais. Ticket
 Verificação: 23 testes Python locais (incluindo broker HTTP/SQLite, ticket HMAC, gate JS, runner, quota separada, reserva emergencial e revisão adaptativa), sintaxe Python/Node e descoberta no catálogo autenticado. Não houve inferência artificial. A fila foi retida brevemente; a revisão em curso terminou normalmente e todos os agentes estavam ociosos antes do reload. Planos pausados/bloqueados mantiveram seus estados.
 
 Backup remoto: `/home/enok/.local/state/paseo-backups/antigravity-sonnet-20261030T191123Z`. Broker compartilhado atualizado nos mesmos módulos, mantendo leases e banco. A alteração de política pertence ao NexoISP; o daemon do principal não foi alterado.
+
+
+## Experimento Terra Alto — aplicado em 30/10/2026
+
+Somente a conta dedicada `codex-programmer/gpt-6.1-terra` passa de Médio para Alto, mantendo a prioridade da cadeia. Terra da conta original continua Médio. O roteamento e o broker leem `programmer_account.thinking`; os tickets fixam o esforço exato. Os gates aceitam tickets Medium anteriores para encerrar trabalho já admitido sem elevar esforço nem invalidar sessões em curso, e High para a fase nova. Perfis, catálogo, painel e instruções foram alinhados.
+
+A ferramenta read-only `deploy/worker-comparison.py` registra snapshots em `orchestration/evidence/worker-comparison`: fim de Terra Médio e início de Terra Alto. Inclui evento de corte, contadores de implementação/reprovação/integração por modelo/esforço, tokens de entrada/cache/saída/raciocínio separados por conta e observação de cota existente. Não grava prompts nem credenciais, não chama modelos e não converte tokens em percentuais de assinatura. Tokens cached são subconjunto de entrada e raciocínio é subconjunto da saída. Comparar tarefas semelhantes e excluir entregas herdadas entre fases e bloqueios de ambiente; retrabalho observado não prova causalidade do modelo.
+
+Não há troca automática para Sol: a fase Sol Médio será iniciada em uma mudança posterior. Backup remoto: `/home/enok/.local/state/paseo-backups/terra-high-20261030T204019Z`. O gerente Webchat finalizou o turno após aviso administrativo antes do reload; planos e histórico preservados. Cobertura focada: contrato HTTP broker/tickets, Sonnet independente, roteamento/emergência e contador sem duplicação de cache/raciocínio.

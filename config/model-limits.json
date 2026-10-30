@@ -119,7 +119,7 @@
       "reasoning"
     ],
     "fallback_model": "codex-programmer/gpt-6.1-terra",
-    "fallback_thinking_option": "medium",
+    "fallback_thinking_option": "high",
     "auto_return": true,
     "secondary_fallback_model": "antigravity2/gemini-3.8-flash-high",
     "secondary_fallback_thinking_option": "high",
@@ -186,7 +186,7 @@
     "enabled": true,
     "provider": "codex-programmer",
     "model": "gpt-6.1-terra",
-    "thinking": "medium",
+    "thinking": "high",
     "role": "programmer_only",
     "isolated_home": "/home/enok/srv_projetos/runtime/isolated/codex-programmer/home",
     "capacity_scope": "per_chat_and_host_resources",

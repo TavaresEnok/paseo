@@ -145,7 +145,7 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
     normalized = str(role or "").strip().lower()
     previous = working["decisions"].get(normalized)
     previous_key = previous.get("model_key") if isinstance(previous, dict) else None
-    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits))
+    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits), (limits.get("programmer_account") or {}).get("thinking", "medium"))
     if normalized == "manager" and choice["model_key"] == SOL_HIGH[0] and (limits.get("supervision") or {}).get("primary_thinking") == "medium":
         choice = _chosen(SOL_MEDIUM, "manager_primary_sol_medium")
     if normalized == "reviewer" and implementation_model == ANTIGRAVITY_SONNET_KEY and choice["model_key"] == SONNET_HIGH[0] and effective["codex"]["status"] != "exhausted":
@@ -204,7 +204,7 @@ def _mode(working, effective):
     )
 
 
-def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False, sonnet_enabled=False):
+def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False, sonnet_enabled=False, dedicated_effort="medium"):
     codex = effective["codex"]["status"]
     claude = effective["claude"]["status"]
     grok = effective["grok"]["status"]
@@ -227,8 +227,10 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
             return _chosen(SONNET_HIGH, "manager_fallback_sonnet_high")
         return _queued("manager_queued")
     if role == "programmer":
+        if dedicated_effort not in {"medium", "high"}:return _queued("programmer_effort_forbidden")
+        dedicated_terra = (TERRA_MEDIUM[0], dedicated_effort)
         regular = [GROK_MEDIUM]
-        if programmer_account: regular.append(TERRA_MEDIUM)
+        if programmer_account: regular.append(dedicated_terra)
         if gemini_enabled and gemini1_enabled: regular.append(GEMINI_HIGH)
         if gemini_enabled and gemini3_enabled: regular.append(GEMINI_NEW2_HIGH)
         if gemini_enabled and gemini2_enabled: regular.append(GEMINI2_HIGH)
@@ -250,7 +252,7 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
         if grok != "exhausted":
             return _chosen(GROK_MEDIUM, "programmer_primary_grok_medium")
         if programmer_account and effective["codex-programmer"]["status"] != "exhausted":
-            return _chosen(TERRA_MEDIUM, "programmer_dedicated_terra_medium")
+            return _chosen(dedicated_terra, "programmer_dedicated_terra_"+dedicated_effort)
         if gemini_enabled and gemini1_enabled and effective["antigravity"]["status"] != "exhausted":
             return _chosen(GEMINI_HIGH, "programmer_fallback_gemini_high")
         if gemini_enabled and gemini3_enabled and effective["antigravity3"]["status"] != "exhausted":

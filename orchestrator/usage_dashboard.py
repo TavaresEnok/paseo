@@ -20,7 +20,7 @@ def report(provider):
                 x={'id':w['id'],'label':'Janela curta' if w['id']=='primary' else 'Semanal','usedPct':round((1-left)*100,2),'remainingPct':round(left*100,2)}
                 if w.get('resets_at'):x['resetsAt']=iso(w['resets_at'])
                 windows.append(x)
-            return {'status':'available','planLabel':'Conta exclusiva de programação','windows':windows,'balances':[],'details':[{'id':'role','label':'Modelo','value':'GPT-6.1 Terra Médio — conta nova'},{'id':'observed','label':'Consultado em','value':iso(e['observed_at'])}]}
+            return {'status':'available','planLabel':'Conta exclusiva de programação','windows':windows,'balances':[],'details':[{'id':'role','label':'Modelo','value':e.get('label','GPT-6.1 Terra — conta nova')},{'id':'observed','label':'Consultado em','value':iso(e['observed_at'])}]}
         if provider=='grok':
             from .grok_usage import refresh,subscription_configuration_safe
             e=refresh();b=e.get('results',{}).get('billing',{})

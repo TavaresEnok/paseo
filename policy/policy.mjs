@@ -140,7 +140,7 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
   if ((provider === 'grok' || ticket.provider === 'grok') && !['programmer', 'reviewer'].includes(ticket.role))
     throw new Error('Grok não é gerente nesta política.');
   if (['antigravity','antigravity2','antigravity3'].includes(ticket.provider) && (ticket.role !== 'programmer' || !((ticket.model === 'gemini-3.8-flash-high' && ticket.effort === 'high') || (ticket.provider === 'antigravity2' && readModelLimits().antigravity_sonnet?.enabled && ticket.model === 'claude-sonnet-5-5-medium' && ticket.effort === 'medium')))) throw new Error('Antigravity somente programador Flash Alto ou Sonnet Médio.');
-  if (ticket.provider === 'codex-programmer' && (ticket.role !== 'programmer' || ticket.model !== 'gpt-6.1-terra' || ticket.effort !== 'medium')) throw new Error('Conta Codex dedicada somente programador Terra Médio.');
+  if (ticket.provider === 'codex-programmer' && (ticket.role !== 'programmer' || ticket.model !== 'gpt-6.1-terra' || !['medium','high'].includes(ticket.effort))) throw new Error('Conta Codex dedicada somente programador Terra Médio/Alto com ticket assinado.');
   return 'admitted';
 }
 function heldWorkerLease(ticket) {
