@@ -88,7 +88,7 @@
     "codex_exhausted_model": "grok/grok-4.7",
     "codex_exhausted_thinking_option": "high",
     "separate_session_from_implementation": true,
-    "sol_high_for_external_programmer": true
+    "sol_high_for_external_programmer": false
   },
   "programming": {
     "model": "grok/grok-4.7",
@@ -114,7 +114,7 @@
   "supervision": {
     "enabled": true,
     "primary_model": "codex/gpt-6.1-sol",
-    "primary_thinking": "high",
+    "primary_thinking": "medium",
     "fallback_model": "claude/claude-sonnet-5-5",
     "fallback_thinking": "high",
     "auto_return": true,
@@ -127,8 +127,20 @@
       "role": "manager_only",
       "activate_when": "claude_grok_dedicated_terra_and_all_enabled_gemini_exhausted_and_original_codex_available",
       "return_to": "codex/gpt-6.1-sol",
-      "return_thinking": "high",
+      "return_thinking": "medium",
       "return_when": "fresh_positive_quota_on_claude_grok_dedicated_terra_or_enabled_gemini"
+    },
+    "adaptive_effort": {
+      "enabled": true,
+      "default": "medium",
+      "maximum": "high",
+      "high_triggers": [
+        "complex_planning_request",
+        "complex_next_batch_planning",
+        "integration_conflict",
+        "repeated_technical_block"
+      ],
+      "audit": "logs/policy.jsonl"
     }
   },
   "policy_engine": "proposed-2026-10-29",
@@ -165,5 +177,10 @@
       "codex-programmer",
       "antigravity2"
     ]
+  },
+  "efficiency": {
+    "notifications_batch_seconds": 20,
+    "urgent_blockers_immediate": true,
+    "review_brief": true
   }
 }

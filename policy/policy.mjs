@@ -117,7 +117,8 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
   if (ticket.agent_id && agentId && ticket.agent_id !== agentId) throw new Error('Ticket não pertence a este agente.');
   if (provider && ticket.provider && provider !== ticket.provider) throw new Error('Provedor não confere com o ticket do controlador.');
   if (requestedModel && requestedModel !== ticket.model) throw new Error('Modelo não confere com o ticket do controlador.');
-  if (requestedEffort && requestedEffort !== ticket.effort) throw new Error('Esforço não confere com o ticket do controlador.');
+  const adaptiveManager = ticket.role === 'manager' && ticket.provider === 'codex' && ticket.model === 'gpt-6.1-sol' && limits.supervision?.adaptive_effort?.enabled === true && ['medium','high'].includes(ticket.effort) && ['medium','high'].includes(requestedEffort);
+  if (requestedEffort && requestedEffort !== ticket.effort && !adaptiveManager) throw new Error('Esforço não confere com o ticket do controlador.');
   if (['programmer', 'reviewer'].includes(ticket.role)) {
     const holdPath='/home/enok/srv_projetos/orchestration/OPERATOR-HOLD.json';
     if (existsSync(holdPath) && JSON.parse(readFileSync(holdPath,'utf8')).active !== false) throw new Error('Pausa global explícita: não iniciar trabalhador.');
@@ -435,16 +436,26 @@ export function managerForNewChat(evidence = {}) {
     return { profileId: 'etapa2-supervisor-fallback', provider: 'claude', model: 'claude-sonnet-5-5', thinkingOptionId: 'high', role: 'manager', parentProfileId: 'etapa2-supervisor' };
   }
   if (String(status('codex')) === 'available' || status('codex') !== 'exhausted') {
-    return { profileId: 'etapa2-supervisor', provider: 'codex', model: 'gpt-6.1-sol', thinkingOptionId: 'high', role: 'manager', parentProfileId: 'etapa2-supervisor' };
+    return { profileId: 'etapa2-supervisor', provider: 'codex', model: 'gpt-6.1-sol', thinkingOptionId: readModelLimits().supervision?.primary_thinking || 'high', role: 'manager', parentProfileId: 'etapa2-supervisor' };
   }
   return { wait: true, role: 'manager', parentProfileId: 'etapa2-supervisor' };
+}
+function adaptiveManagerEffort(agentId, prompt) {
+  const source = '/home/enok/.local/share/paseo-orchestrator';
+  const script = "import sys,json;sys.path.insert(0,sys.argv[1]);from orchestrator.manager_effort import select;print(json.dumps(select(sys.argv[2],sys.argv[3],json.load(sys.stdin))))";
+  try {
+    return JSON.parse(execFileSync('python3', ['-c',script,source,flowDb(),String(agentId)], {input:JSON.stringify(typeof prompt === 'string' ? prompt : prompt?.prompt || ''),encoding:'utf8',timeout:3000,stdio:['pipe','pipe','pipe']}));
+  } catch (error) {
+    audit('manager_effort_selection_error', {agentId, error:String(error).slice(0,300)});
+    return {effort:'high',reason:'state_unavailable_conservative'};
+  }
 }
 function managerCandidate(config) {
   const role = config.labels?.['flow.role'] || config.env?.PASEO_FLOW_ROLE || config.role;
   if ([config.labels?.['flow.role'], config.env?.PASEO_FLOW_ROLE, config.role].some(value => ['programmer','reviewer'].includes(value)) || config.internal || config.discovery || config.metadataOnly || config.purpose) return false;
   const profile = config.profileId || config.agentProfileId;
   return isManagerRoot(config.cwd) &&
-    (profile === 'etapa2-supervisor' || (!profile && config.provider === 'codex' && config.model === 'gpt-6.1-sol' && config.thinkingOptionId === 'high'));
+    (profile === 'etapa2-supervisor' || (!profile && config.provider === 'codex' && config.model === 'gpt-6.1-sol' && ['medium','high'].includes(config.thinkingOptionId)));
 }
 function nativeManager(config, agentId) {
   const staged = fileURLToPath(new URL('../orchestrator', import.meta.url));
@@ -502,7 +513,7 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
   const prototype = AgentManager.prototype;
   const register = prototype.registerSession;
   prototype.registerSession = function(session, ...args) {
-    installSessionPolicy(session, args[0], args[1]);
+    installSessionPolicy(session, args[0], args[1], this);
     return register.call(this, session, ...args);
   };
   const prepare = prototype.prepareSessionConfig;
@@ -628,7 +639,7 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
   audit('manager_policy_installed', { version: 2, pid: process.pid, limit: readPolicy().max_concurrent_executors });
 }
 
-export function installSessionPolicy(session, registeredConfig = {}, registeredAgentId) {
+export function installSessionPolicy(session, registeredConfig = {}, registeredAgentId, manager) {
   if (session[SESSION_GUARDED]) return;
   if (session.setMode) {
     const mode = session.setMode.bind(session);
@@ -672,7 +683,21 @@ export function installSessionPolicy(session, registeredConfig = {}, registeredA
     session.startTurn = async (...args) => {
       const runtime = await session.getRuntimeInfo?.();
       const model = runtime?.model ?? session.config?.model ?? registeredConfig.model;
-      const effort = runtime?.thinkingOptionId ?? session.config?.thinkingOptionId ?? registeredConfig.thinkingOptionId;
+      let effort = runtime?.thinkingOptionId ?? session.config?.thinkingOptionId ?? registeredConfig.thinkingOptionId;
+      const admission = verifiedAdmission(agentId);
+      if (admission?.role === 'manager' && session.provider === 'codex' && model === 'gpt-6.1-sol' && readModelLimits().supervision?.adaptive_effort?.enabled === true) {
+        const choice = adaptiveManagerEffort(agentId, args[0]);
+        await session.setThinkingOption(choice.effort);
+        effort = choice.effort;
+        if (manager) {
+          const agent = manager.requireAgent(agentId);
+          agent.config.thinkingOptionId = effort;
+          if (agent.runtimeInfo) agent.runtimeInfo = {...agent.runtimeInfo, thinkingOptionId:effort};
+          manager.touchUpdatedAt(agent);
+          manager.emitState(agent);
+        }
+        audit('manager_effort_selected', {agentId, ...choice});
+      }
       const mark = assertTurnAdmission(agentId, session.provider, model, effort);
       const turnConfig = { ...registeredConfig, ...(session.config || {}), role: verifiedAdmission(agentId)?.role, provider: session.provider, model, thinkingOptionId: effort, agentId };
       if (!agentId || typeof turnConfig.cwd !== "string" || !turnConfig.cwd) throw new Error("Contexto do agente indisponível: ID e diretório são obrigatórios.");

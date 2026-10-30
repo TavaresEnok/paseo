@@ -12,14 +12,14 @@
   ],
   "profiles": {
     "supervisor": {
-      "name": "Gerente principal — GPT-6.1 Sol Alto",
+      "name": "Gerente — Sol Médio / Alto adaptativo",
       "provider": "codex",
       "default_model": "gpt-6.1-sol",
       "subscription": "Assinatura ChatGPT",
-      "role": "Gerência e planejamento; reserva Sonnet Alto somente sem cota do Sol",
+      "role": "Coordenação em Médio; Alto em planejamento complexo, conflitos e bloqueios técnicos repetidos",
       "mode": "full-access",
       "native_profile_id": "etapa2-supervisor",
-      "thinking_option": "high",
+      "thinking_option": "medium",
       "command": [
         "codex",
         "--model",
@@ -122,7 +122,7 @@
       "provider": "claude",
       "default_model": "claude-sonnet-5-5",
       "subscription": "Assinatura Claude",
-      "role": "Gerência somente com cota do Sol confirmada esgotada; retorno automático ao Sol Alto",
+      "role": "Gerência somente sem cota do Sol; retorno ao Sol com esforço adaptativo",
       "mode": "bypassPermissions",
       "native_profile_id": "etapa2-supervisor-fallback",
       "thinking_option": "high",
@@ -138,11 +138,11 @@
       "provider": "codex",
       "default_model": "gpt-6.1-sol",
       "thinking_option": "medium",
-      "name": "Revisor substituto — GPT-6.1 Sol Médio",
+      "name": "Revisor substituto — Sol Médio",
       "mode": "auto",
       "native_profile_id": "etapa2-qa-fallback",
       "subscription": "Assinatura ChatGPT",
-      "role": "Revisão de reserva apenas sem cota do Sonnet; não programa",
+      "role": "Revisão independente de qualquer programador; esforço Médio",
       "command": [
         "codex",
         "--model",
@@ -203,18 +203,18 @@
     "qa-fallback-high": {
       "provider": "codex",
       "default_model": "gpt-6.1-sol",
-      "thinking_option": "high",
-      "name": "Revisor substituto — Sol Alto para Grok/Gemini",
+      "thinking_option": "medium",
+      "name": "Revisor substituto — Sol Médio",
       "mode": "auto",
       "native_profile_id": "etapa2-qa-fallback-high",
       "subscription": "Assinatura ChatGPT",
-      "role": "Revisão independente quando Sonnet esgotou e a implementação é Grok ou Gemini. Se Sol implementou, revisor Sol Médio em sessão separada.",
+      "role": "Revisão independente de qualquer programador; esforço Médio",
       "command": [
         "codex",
         "--model",
         "gpt-6.1-sol"
       ],
-      "enabled": true,
+      "enabled": false,
       "notes": "Política atual em model-limits.json; revisão independente"
     },
     "programador-terra": {

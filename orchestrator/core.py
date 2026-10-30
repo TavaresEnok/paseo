@@ -530,9 +530,12 @@ def _plan_policy(job):
     return policy_from_plan(plan)
 
 def prompt_for(job, task, spec):
+    objective = job['objective']
+    if task['phase']=='review' and len(objective)>2000:
+        objective = objective[:2000] + '\n[Objetivo geral recortado; critérios completos da tarefa abaixo. Consulte o plano se necessário.]'
     common = f'''Trabalhe SOMENTE nesta worktree de desenvolvimento: {task['cwd']}.
 Você é executor desta tarefa delimitada, não o gerente. O contrato já foi definido: leia os poucos padrões necessários em lote e avance à implementação; evite reler arquivos e fazer descoberta geral indefinidamente.
-Plano aprovado: {job['objective']}\nTarefa: {spec['objective']}\nCritérios: {encoded(spec['acceptance'])}
+Plano aprovado: {objective}\nTarefa: {spec['objective']}\nCritérios: {encoded(spec['acceptance'])}
 Arquivos autorizados: {encoded(spec['allowed_files'])}\nTestes obrigatórios: {encoded(spec['tests'])}
 Não faça deploy, push, merge, acesso a produção/credenciais, instalação de serviços ou uso de API paga.
 Não crie agentes fora do controlador. Não faça commit: o controlador verifica e integra numa branch de desenvolvimento.
@@ -544,6 +547,8 @@ Grave código e arquivos de resultado usando apply_patch/Write. Para os metadado
         common=common.replace('Grave código e arquivos de resultado usando apply_patch/Write. Para os metadados, evite Python -c, redirecionamentos e scripts shell: o controlador valida os caminhos de patches diretamente.', 'Use a ferramenta adequada para gravar código e metadados de resultado, sem pedir liberação de comandos.')
     policy=_plan_policy(job)
     if task['phase']=='review':
+        from .review_brief import brief
+        common += brief(task['cwd'])
         if policy is not None:
             return common + '''Faça revisão independente das alterações presentes. Não modifique o código.
 Escreva .paseo-review.json com {"decision":"pass" ou "fail","issues":[],"summary":"..."}.
@@ -1496,14 +1501,8 @@ def tick():
             (state IN ('done','blocked') OR (state='running' AND EXISTS
              (SELECT 1 FROM tasks WHERE tasks.job_id=jobs.id AND
               (tasks.state='blocked' OR (tasks.state='launching' AND tasks.launch_failures>=3)))))""").fetchall()
-        for job in completed:
-            report(job['id'])
-            if job['supervisor_id']:
-                try:
-                    bridge('send',agentId=job['supervisor_id'],prompt=f"Evento do controlador: plano {job['id']} está {job['state']}. Consulte `paseo-flow report {job['id']}` e a política vigente em model-limits.json. Você é o gerente responsável pela continuidade autônoma já autorizada. Se houver launch_requires_attention, investigue o erro da criação sem duplicar o executor nem descartar o recibo incerto. Se houver tarefa blocked, mesmo com outras executando, analise a causa e recupere o mesmo plano pelo controlador quando houver correção concreta dentro do escopo aprovado; inclua a reprovação completa no contexto do programador e amplie max_attempts uma tentativa por decisão justificada; não há teto global fixo de cinco. Não encerre apenas relatando um bloqueio recuperável. Se done, confira o backlog aprovado e planeje o próximo lote autorizado com tarefas independentes em paralelo. Preserve entregas concluídas e pausas explícitas do usuário. Gerente não programa: delegue ao programador selecionado pelo controlador e exija revisão independente. Papéis e ordem de programação: {__import__('orchestrator.model_limits',fromlist=['role_summary']).role_summary()} Se depender de decisão externa real ou de ampliar o escopo, explique o impedimento concreto. Atualize o usuário com resultados verificáveis.")
-                except Exception as exc:
-                    event(db,'notification_pending',{'error':str(exc)},job['id']);continue
-            db.execute('UPDATE jobs SET notified=1 WHERE id=?',(job['id'],))
+        from .notifications import deliver
+        deliver(db, completed, __import__('orchestrator.core', fromlist=['core']))
     return resources
 
 def report(job_id):

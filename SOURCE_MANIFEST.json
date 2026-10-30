@@ -5,8 +5,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/policy_integration.py",
       "path": "orchestrator/policy_integration.py",
-      "source_sha256": "312abf262ae4252c7fb0e7fd90813c19014cf842a4ed34d450761cbcc8c013c9",
-      "export_sha256": "7563f1c8eb0afced170118a74b9ab8edb742ed5fb1a05a806bbdecc3386c3a41",
+      "source_sha256": "e3eaf525ff3e5e04d4952e60535b9af5e07beaeb7c08548e91318c038f2fae36",
+      "export_sha256": "ab616bebe6ff608dd2a23c23ba07bfffa92817d4d5ab059e13f38d471f8a7b5c",
       "sanitized": true
     },
     {
@@ -166,8 +166,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/core.py",
       "path": "orchestrator/core.py",
-      "source_sha256": "bce0e1dde677b08c074f12a9a92e3846b59c5b4cf4ca0499d66a3231fe545694",
-      "export_sha256": "bce0e1dde677b08c074f12a9a92e3846b59c5b4cf4ca0499d66a3231fe545694",
+      "source_sha256": "502da2d2361b156b4dc646a4c89d7c4bf193a313e52a1e93f776452a77f92ea8",
+      "export_sha256": "502da2d2361b156b4dc646a4c89d7c4bf193a313e52a1e93f776452a77f92ea8",
       "sanitized": false
     },
     {
@@ -194,22 +194,22 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/policy_runtime.py",
       "path": "orchestrator/policy_runtime.py",
-      "source_sha256": "9126b88399b6c991f896e40f4e17a61644c7cfd4843980b9a8ea59cbc05cb804",
-      "export_sha256": "9126b88399b6c991f896e40f4e17a61644c7cfd4843980b9a8ea59cbc05cb804",
+      "source_sha256": "5cd75d1f188d5c2758a562763985727be1f2c8e89121cfcd23fe8dcbe47e1fd1",
+      "export_sha256": "5cd75d1f188d5c2758a562763985727be1f2c8e89121cfcd23fe8dcbe47e1fd1",
       "sanitized": false
     },
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/supervision.py",
       "path": "orchestrator/supervision.py",
-      "source_sha256": "8bf8440be34391efee7934cf3d735a8be4c132e3e4624bb10d5ad2173a5475ae",
-      "export_sha256": "8bf8440be34391efee7934cf3d735a8be4c132e3e4624bb10d5ad2173a5475ae",
+      "source_sha256": "2e85cae66a583cccae96f770adca887e5b8afedc9ee74fa4edef61689805d938",
+      "export_sha256": "2e85cae66a583cccae96f770adca887e5b8afedc9ee74fa4edef61689805d938",
       "sanitized": false
     },
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/model_limits.py",
       "path": "orchestrator/model_limits.py",
-      "source_sha256": "e84766c3e37be5ba2b0e658bbb48567a44b228a303106c7d14ff64a9298ed355",
-      "export_sha256": "e84766c3e37be5ba2b0e658bbb48567a44b228a303106c7d14ff64a9298ed355",
+      "source_sha256": "b2090a7c54dadd5aab992ea3d7462296adee7cb8e3c926a49ccdb1d68edcd5fc",
+      "export_sha256": "b2090a7c54dadd5aab992ea3d7462296adee7cb8e3c926a49ccdb1d68edcd5fc",
       "sanitized": false
     },
     {
@@ -446,10 +446,9 @@
     {
       "source": "/home/enok/.local/share/paseo-policy/policy.mjs",
       "path": "policy/policy.mjs",
-      "source_sha256": "a034e84c133eff025f3f4c018eda7223d904b8f1fb270623dfe68d41152dc94e",
-      "export_sha256": "a034e84c133eff025f3f4c018eda7223d904b8f1fb270623dfe68d41152dc94e",
-      "sanitized": false,
-      "updated_at": "2026-10-30T08:29:33Z"
+      "source_sha256": "bfe8ad52a4ee4ec82aa61276552ec0839d2665aab6c2e8891484c93b5e117d36",
+      "export_sha256": "bfe8ad52a4ee4ec82aa61276552ec0839d2665aab6c2e8891484c93b5e117d36",
+      "sanitized": false
     },
     {
       "source": "/home/enok/.local/share/paseo-policy/install.py",
@@ -651,8 +650,8 @@
     {
       "source": "/home/enok/srv_projetos/config/manager-instructions.txt",
       "path": "config/manager-instructions.txt",
-      "source_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
-      "export_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
+      "source_sha256": "e42fe226c98933ddf8d858e5a66d4b6aa1973d8574afa5289dfbe09ea3114da8",
+      "export_sha256": "e42fe226c98933ddf8d858e5a66d4b6aa1973d8574afa5289dfbe09ea3114da8",
       "sanitized": false
     },
     {
@@ -10847,6 +10846,42 @@
       "source_sha256": "3f14e03e912c8b49af71e8d7157e1f895aab119907506060c5ce5c1e73d823c4",
       "export_sha256": "3f14e03e912c8b49af71e8d7157e1f895aab119907506060c5ce5c1e73d823c4",
       "sanitized": false
+    },
+    {
+      "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/review_brief.py",
+      "path": "orchestrator/review_brief.py",
+      "source_sha256": "ad92b9b106b4aea0e2b5c5f59764daced11490a106d4cdf8315881ec836d2ccd",
+      "export_sha256": "ad92b9b106b4aea0e2b5c5f59764daced11490a106d4cdf8315881ec836d2ccd",
+      "sanitized": false
+    },
+    {
+      "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/manager_effort.py",
+      "path": "orchestrator/manager_effort.py",
+      "source_sha256": "cc4ab823cc8250f1aac9e4c0fa2b2b9037ae9f320b69ff6d01be2490806d2a80",
+      "export_sha256": "cc4ab823cc8250f1aac9e4c0fa2b2b9037ae9f320b69ff6d01be2490806d2a80",
+      "sanitized": false
+    },
+    {
+      "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/notifications.py",
+      "path": "orchestrator/notifications.py",
+      "source_sha256": "2e6f37d841c9db9200cbde1e9c8c6f8912e31dfb0537583b628026b0bfda937b",
+      "export_sha256": "2e6f37d841c9db9200cbde1e9c8c6f8912e31dfb0537583b628026b0bfda937b",
+      "sanitized": false
+    },
+    {
+      "source": "/home/enok/srv_projetos/config/model-limits.json",
+      "path": "config/model-limits.json",
+      "source_sha256": "86f970802fdb5995a7812fcda0b92d3903804478a6c58df5c5303afb5f4c1d65",
+      "export_sha256": "86f970802fdb5995a7812fcda0b92d3903804478a6c58df5c5303afb5f4c1d65",
+      "sanitized": false
+    },
+    {
+      "source": "/home/enok/srv_projetos/config/profiles.json",
+      "path": "config/profiles.json",
+      "source_sha256": "f8c268ea47a086e9d2407a770b9c5865f3caf36c6b348a82b43a829d4926211f",
+      "export_sha256": "f8c268ea47a086e9d2407a770b9c5865f3caf36c6b348a82b43a829d4926211f",
+      "sanitized": false
     }
-  ]
+  ],
+  "updated_at": "2026-10-30T15:57:08.717723+00:00"
 }

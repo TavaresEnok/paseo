@@ -148,7 +148,7 @@ def discoverable_manager(agent, settings, limits, db):
     # both roles the same effort, an explicit supervisor label is required.
     if labels.get('flow.role') not in {None, 'supervisor'}:
         return False
-    if thinking != settings.get('primary_thinking'):
+    if thinking != settings.get('primary_thinking') and not ((settings.get('adaptive_effort') or {}).get('enabled') and key == 'codex/gpt-6.1-sol' and thinking in {'medium','high'} and labels.get('flow.role') == 'supervisor'):
         return False
     if labels.get('flow.role') == 'supervisor':
         return True

@@ -38,3 +38,11 @@ O controlador e o daemon estavam ativos. O despacho estava retido pela pausa adm
 8. Relação entre o JavaScript distribuído em `installed-paseo/`, os patches da política e uma futura atualização do upstream.
 
 Sugestões devem citar arquivo e cenário que reproduz a falha. Diferencie problemas confirmados de hipóteses e preserve a pausa explícita do operador durante investigação.
+
+## Economia de contexto e gerência adaptativa — 30/10/2026
+
+A reserva de revisão passa a Sol Médio em todas as implementações. O gerente Sol usa Médio por padrão; o hook de início de turno eleva para Alto em pedido de planejamento complexo, planejamento do próximo lote complexo, conflito de integração ou bloqueio técnico repetido (espera por cota não basta). Volta a Médio quando o gatilho deixa de existir. A escolha ocorre na mesma sessão, é refletida no estado do agente e registrada como `manager_effort_selected` em `policy.jsonl`. A exceção de esforço no ticket é limitada ao papel manager, provedor codex, modelo Sol e valores medium/high. Trabalhadores continuam com esforço fixo no ticket. Erro de leitura do estado usa Alto conservador e registra o erro.
+
+Notificações ordinárias são agrupadas por chat durante 20 segundos; bloqueios seguem imediatamente. A outbox persiste mensagem e UUID para reenvio idempotente, usa steer e descarta notificações de estados substituídos ou pausados. Não cria polling por IA. O pacote de revisão inclui diff limitado, status Git (incluindo arquivos novos), critérios e resultados essenciais; cortes são explícitos e exigem consulta ao conteúdo completo antes da aprovação.
+
+Validação: quatro testes locais de esforço, agrupamento/reenvio, pausa e diff com arquivo novo; verificação isolada de seleção de revisor para Grok/Terra/Gemini/Sol e de limites dos tickets; sintaxe Python/Node. A implantação aguardou todos os agentes ativos terminarem antes de recarregar o daemon. Depois da retomada, duas revisões reais foram admitidas em Sol Médio, uma por projeto. Não houve chamada artificial a modelos para testar.

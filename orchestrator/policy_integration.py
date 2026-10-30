@@ -17,7 +17,7 @@ import uuid
 from pathlib import Path
 
 ENGINE = "proposed-2026-10-29"
-ACCOUNT_EMAIL = "account@example.invalid"
+ACCOUNT_EMAIL = "[account-email-redacted]"
 ACCOUNT_ID = hashlib.sha256(ACCOUNT_EMAIL.encode()).hexdigest()
 
 
@@ -1112,7 +1112,11 @@ def reconcile_manager_route(db, route, agents, settings):
     effort = selected["thinking_option_id"]
     current_key = str(current.get("provider") or "") + "/" + str(current.get("model") or "")
     current_effort = supervision.thinking_of(current) or settings.get("primary_thinking")
-    if current_key == key and current_effort == effort:
+    adaptive_same = (key == 'codex/gpt-6.1-sol' and (settings.get('adaptive_effort') or {}).get('enabled')
+                     and current_effort in {'medium','high'} and effort in {'medium','high'})
+    if current_key == key and (current_effort == effort or adaptive_same):
+        if adaptive_same:
+            decision = {**decision, 'selected': {**selected, 'thinking_option_id': current_effort}}
         ensure_current_manager_ticket(db, str(chat_id), current, decision)
         single_manager(db, str(chat_id), route["active_id"])
         db.commit()

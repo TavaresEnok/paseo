@@ -8,13 +8,13 @@
     "agentProfiles": [
       {
         "id": "etapa2-supervisor",
-        "name": "Gerente principal — GPT-6.1 Sol Alto",
+        "name": "Gerente — Sol Médio / Alto adaptativo",
         "provider": "codex",
         "model": "gpt-6.1-sol",
         "modeId": "full-access",
-        "thinkingOptionId": "high",
+        "thinkingOptionId": "medium",
         "featureValues": {},
-        "notes": "Gerente único; planeja e delega. Reserva somente por quota confirmada. Astra somente exceção temporária Médio. Respeitar pausa explícita.",
+        "notes": "Uma sessão: Sol Médio na rotina, Alto em planejamento complexo, conflito ou bloqueio técnico repetido. Escolha por turno registrada pelo controlador.",
         "enabled": true
       },
       {
@@ -52,7 +52,7 @@
         "modeId": "acceptEdits",
         "thinkingOptionId": "high",
         "featureValues": {},
-        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
         "enabled": true
       },
       {
@@ -123,7 +123,7 @@
         "modeId": "auto",
         "thinkingOptionId": "medium",
         "featureValues": {},
-        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
         "enabled": true
       },
       {
@@ -142,18 +142,18 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "high",
-        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
         "enabled": true
       },
       {
         "id": "etapa2-qa-fallback-high",
-        "name": "Revisor substituto — Sol Alto para Grok/Gemini",
+        "name": "Revisor substituto — Sol Médio (legado)",
         "provider": "codex",
         "model": "gpt-6.1-sol",
         "modeId": "auto",
-        "thinkingOptionId": "high",
-        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
-        "enabled": true
+        "thinkingOptionId": "medium",
+        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
+        "enabled": false
       },
       {
         "id": "etapa2-programmer-gemini2",

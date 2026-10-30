@@ -29,9 +29,9 @@ O sistema transforma pedidos em planos, delega programação a agentes independe
 
 | Papel | Principal | Substituição |
 | --- | --- | --- |
-| Gerente | GPT-6.1 Sol Alto, conta de gerência | Sonnet 5.5 Alto; Astra Médio somente na exceção definida na política |
+| Gerente | GPT-6.1 Sol Médio; Alto por turno para planejamento complexo/conflitos/bloqueios técnicos | Sonnet 5.5 Alto; Astra Médio somente na exceção definida na política |
 | Programador | Grok 4.7 Médio | GPT-6.1 Terra Médio, conta exclusiva → Gemini 3.8 Flash Alto, conta lógica 3 → aguardar cota |
-| Revisor | Sonnet 5.5 Alto | Sol Alto para implementação Grok/Terra/Gemini; Sol Médio para Sol; alternativa Grok Alto conforme política |
+| Revisor | Sonnet 5.5 Alto | Sol Médio para qualquer programador; alternativa Grok Alto conforme política |
 
 O gerente, o programador e o revisor usam sessões separadas. O Codex programador tem credenciais separadas da conta Codex de gerência/revisão. A conta lógica Gemini 3 corresponde ao provedor `antigravity2` e ao diretório histórico `account2`; esse nome não significa que a conta lógica 2 continua habilitada. O arquivo `config/model-limits.json` é a referência executável completa, inclusive exceções, recuperação de cota e concorrência.
 
