@@ -73,3 +73,16 @@ Roteamento, broker, allowed_model, catálogo de assinatura, perfil nativo, opç�
 Snapshots privados: `terra-high-end-before-sol-medium.json` e `sol-medium-dedicated-terra-high-original-start.json`. Tokens e retrabalho são separados por conta/modelo/esforço; tarefas herdadas devem ser identificadas na análise. A fase Terra Alto dedicada teve somente quatro inícios antes da troca e foi interrompida por quota, insuficiente para conclusão estatística de eficiência.
 
 Backup: `/home/enok/.local/state/paseo-backups/sol-medium-worker-20261030T210917Z`. Reload após confirmar todos os agentes ociosos; fila e planos preservados. Verificações focadas passaram, incluindo HTTP broker real, ticket HMAC, gate JS e runner para Sol Médio e recusa de esforço Alto.
+
+
+## Correção de integração bloqueada e manutenção — 30/10/2026
+
+Uma integração reprovada conservava sua exclusividade e impedia até a correção separada já revisada de entrar. Adicionado `paseo-flow repair-integration JOB --blocked-task ORIGINAL --repair-task CORRECAO --reason MOTIVO`, disponível ao gerente vigente pela API autenticada. Exige mesmo plano aprovado/ativo, original bloqueada e dona da integração, correção distinta em fase de integração, commits/revisões preservados, worktrees limpas e nenhum runner vivo. A transferência é persistida e auditada; depois da correção validada, restaura a exclusividade e revalida a original sem refazer implementação/revisão. Pausa não é removida; queda entre concluir a correção e liberar exclusividade é reconciliada na próxima aquisição. Correção ainda não revisada ou validação em andamento são recusadas.
+
+Aplicado ao Webchat `4355b9621150`: fixture `m3-contacts-sector-fixture` integrada com checks aprovados, restauração para `m3-contact-directory` e continuação de acesso operacional na mesma worktree. A quarta tentativa foi autorizada pelo pedido do operador; testes e escopo não foram reduzidos. A falha anterior por ausência do resultado foi confirmada como interrupção administrativa durante teste na recarga anterior e excluída de outcomes do modelo, mantendo os eventos e o histórico de tentativas.
+
+Antes de futuras recargas, `deploy/check-idle.py` consulta todas as tarefas ativas no SQLite, gerentes por identidade nativa, containers gerenciados e runners; uma página do inventário não serve como prova de ociosidade. A checagem foi confirmada bloqueando a manutenção com trabalhador ativo. Nesta implantação somente o serviço da fila foi recarregado; daemon e sessões permaneceram ativos.
+
+Verificação: três testes de transferência/retorno, queda e pausa, mais nove regressões de auditoria. Backup: `/home/enok/.local/state/paseo-backups/integration-repair-20261030T213028Z`. NexoISP permanece com os lotes recentes concluídos e pendências externas; nenhuma pausa antiga foi removida e nenhum lote artificial foi criado.
+
+Esclarecida a diferença entre max_attempts do contrato e orçamento global de recuperação: o gerente já pode ampliar o primeiro em uma tentativa por recuperação justificada, dentro do orçamento global disponível. Somente estender o orçamento global exige operação humana. Isso elimina a interpretação de que o limite inicial de três tentativas sempre exige nova autorização.

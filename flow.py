@@ -27,6 +27,7 @@ def main():
     status=commands.add_parser('status');status.add_argument('job',nargs='?')
     report=commands.add_parser('report');report.add_argument('job')
     recover=commands.add_parser('recover');recover.add_argument('job');recover.add_argument('--reason',required=True);recover.add_argument('--task-spec')
+    repair=commands.add_parser('repair-integration');repair.add_argument('job');repair.add_argument('--blocked-task',required=True);repair.add_argument('--repair-task',required=True);repair.add_argument('--reason',required=True)
     models=commands.add_parser('models');models.add_argument('--task',default='{}')
     commands.add_parser('resources');commands.add_parser('tick');commands.add_parser('serve')
     commands.add_parser('refresh-catalog')
@@ -53,6 +54,8 @@ def main():
     elif args.command=='recover':
         spec=json.loads(Path(args.task_spec).read_text()) if args.task_spec else None
         result=remote('recover',job_id=args.job,reason=args.reason,revised_task=spec) if agent else core.recover(args.job,args.reason,spec)
+    elif args.command=='repair-integration':
+        result=remote('repair-integration',job_id=args.job,blocked_task=args.blocked_task,repair_task=args.repair_task,reason=args.reason) if agent else core.repair_integration(args.job,args.blocked_task,args.repair_task,args.reason)
     elif args.command=='models':
         task=json.loads(args.task)
         if agent:result=remote('models',task=task)

@@ -54,8 +54,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/service.py",
       "path": "orchestrator/service.py",
-      "source_sha256": "8e03e9785ab3baa42276532b99a9d45f12c37dbda01b214d462d967d125e5eee",
-      "export_sha256": "8e03e9785ab3baa42276532b99a9d45f12c37dbda01b214d462d967d125e5eee",
+      "source_sha256": "eff4a054f61f4a6c828d00c03abbd5381baf31b4b20202598aa32068a8c038f1",
+      "export_sha256": "eff4a054f61f4a6c828d00c03abbd5381baf31b4b20202598aa32068a8c038f1",
       "sanitized": false
     },
     {
@@ -159,15 +159,15 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/integration_owner.py",
       "path": "orchestrator/integration_owner.py",
-      "source_sha256": "f21e69f0e1231cc72256478acd5fd0277499ab9f522e96f38b3b003521f02733",
-      "export_sha256": "f21e69f0e1231cc72256478acd5fd0277499ab9f522e96f38b3b003521f02733",
+      "source_sha256": "819913abe55a76721a3a76800d574722c3f32c788239950c19156b247118a016",
+      "export_sha256": "819913abe55a76721a3a76800d574722c3f32c788239950c19156b247118a016",
       "sanitized": false
     },
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/core.py",
       "path": "orchestrator/core.py",
-      "source_sha256": "fcc09fbbf52fddcb4d6700e12648f245ac937c6695d8b90ba9577a3a77dbcee4",
-      "export_sha256": "fcc09fbbf52fddcb4d6700e12648f245ac937c6695d8b90ba9577a3a77dbcee4",
+      "source_sha256": "8722a76a38f9e09b03f21c6b25cf63fa8d04bfc3c2dae799aaf559129822af99",
+      "export_sha256": "8722a76a38f9e09b03f21c6b25cf63fa8d04bfc3c2dae799aaf559129822af99",
       "sanitized": false
     },
     {
@@ -208,8 +208,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/model_limits.py",
       "path": "orchestrator/model_limits.py",
-      "source_sha256": "b52301ea089aa5a5641afa5b7b7079d05139202a2cf72b216f5cfbda922ac727",
-      "export_sha256": "b52301ea089aa5a5641afa5b7b7079d05139202a2cf72b216f5cfbda922ac727",
+      "source_sha256": "7d1ed76c47c6f5ad7824cb24614de7873edd9cef1d138aedca8e604f863134bb",
+      "export_sha256": "7d1ed76c47c6f5ad7824cb24614de7873edd9cef1d138aedca8e604f863134bb",
       "sanitized": false
     },
     {
@@ -411,8 +411,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/flow.py",
       "path": "flow.py",
-      "source_sha256": "4f4980105a9b64189412b3d7ad478834689c4cf1d1ff7401f8ae78f20fe41443",
-      "export_sha256": "4f4980105a9b64189412b3d7ad478834689c4cf1d1ff7401f8ae78f20fe41443",
+      "source_sha256": "4b3b1b320722e514cc2b6304e572cae38f7c117776409880aedf49ab5d8029eb",
+      "export_sha256": "4b3b1b320722e514cc2b6304e572cae38f7c117776409880aedf49ab5d8029eb",
       "sanitized": false
     },
     {
@@ -650,8 +650,8 @@
     {
       "source": "/home/enok/srv_projetos/config/manager-instructions.txt",
       "path": "config/manager-instructions.txt",
-      "source_sha256": "affdced5ce6f5ba925f8ab27205357494eea84a10c8a4dedb029c815c6e92581",
-      "export_sha256": "affdced5ce6f5ba925f8ab27205357494eea84a10c8a4dedb029c815c6e92581",
+      "source_sha256": "9fa6b6ebf865a954ffe4be85b876a93359662e948638598bf6bbf2f76ca9b7c9",
+      "export_sha256": "9fa6b6ebf865a954ffe4be85b876a93359662e948638598bf6bbf2f76ca9b7c9",
       "sanitized": false
     },
     {
@@ -10951,6 +10951,13 @@
       "sanitized": false,
       "source_sha256": "3618a7d4dff953ebd836fb04407ac32343a8577df4575ee6188c75e8b6711db3",
       "export_sha256": "3618a7d4dff953ebd836fb04407ac32343a8577df4575ee6188c75e8b6711db3"
+    },
+    {
+      "path": "deploy/check-idle.py",
+      "source": "/home/enok/.local/share/paseo-orchestrator/deploy/check-idle.py",
+      "sanitized": false,
+      "source_sha256": "96e7e7cd6fa4ec8d41fd08012a218cb582dd944147a712d0377cbe940af14268",
+      "export_sha256": "96e7e7cd6fa4ec8d41fd08012a218cb582dd944147a712d0377cbe940af14268"
     }
   ],
   "updated_at": "2026-10-30T17:46:27.798213+00:00",
@@ -10975,5 +10982,12 @@
     "original_emergency": "codex/gpt-6.1-terra high",
     "baseline": "orchestration/evidence/worker-comparison/sol-medium-dedicated-terra-high-original-start.json",
     "backup": "/home/enok/.local/state/paseo-backups/sol-medium-worker-20261030T210917Z"
+  },
+  "integration_repair_activation": {
+    "applied_at": "2026-10-30T21:30:28Z",
+    "host": "nexoisp",
+    "job": "4355b9621150",
+    "backup": "/home/enok/.local/state/paseo-backups/integration-repair-20261030T213028Z",
+    "daemon_restarted": false
   }
 }

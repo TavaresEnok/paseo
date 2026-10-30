@@ -426,6 +426,23 @@ def status(job_id=None):
         return jobs
 
 @serialized
+def repair_integration(job_id, blocked_task, repair_task, reason, caller_agent_id=None):
+    if not isinstance(reason,str) or not reason.strip():raise ValueError('Informe motivo concreto da correção.')
+    from .operator_hold import require_running
+    require_running()
+    with database() as db:
+        job=db.execute('SELECT * FROM jobs WHERE id=?',(job_id,)).fetchone()
+        if not job:raise ValueError('Plano inexistente.')
+        caller=caller_agent_id or os.environ.get('PASEO_AGENT_ID')
+        if caller and (caller!=job['supervisor_id'] or not native_snapshot(caller)):
+            raise ValueError('Somente o supervisor vigente do plano pode autorizar a correção.')
+        original=db.execute('SELECT * FROM tasks WHERE job_id=? AND task_key=?',(job_id,blocked_task)).fetchone()
+        repair=db.execute('SELECT * FROM tasks WHERE job_id=? AND task_key=?',(job_id,repair_task)).fetchone()
+        if not original or not repair:raise ValueError('Informe IDs de tarefas existentes no mesmo plano.')
+        from .integration_owner import authorize_repair
+        return authorize_repair(db,job,original,repair,reason.strip())
+
+@serialized
 def recover(job_id, reason, revised_task=None, caller_agent_id=None):
     """Repair one approved job in place, retaining attempts, worktrees and audit."""
     if not isinstance(reason,str) or not reason.strip():raise ValueError('Explique a causa e a correção em reason.')

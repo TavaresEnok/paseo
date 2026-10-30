@@ -53,7 +53,7 @@ class Handler(BaseHTTPRequestHandler):
             data=json.loads(self.rfile.read(length) or '{}')
             if not isinstance(data,dict):raise ValueError('Objeto JSON obrigatório.')
             agent_id=data.get('agent_id')
-            if self.path in {'/unhold','/hold','/submit','/approve','/pause','/recover','/resume','/prepare-project'}:
+            if self.path in {'/unhold','/hold','/submit','/approve','/pause','/recover','/repair-integration','/resume','/prepare-project'}:
                 require_manager(agent_id,data.get('job_id'))
             if self.path=='/unhold':
                 if not agent_id or not core.native_snapshot(agent_id):raise ValueError('Gerente obrigatório.')
@@ -92,12 +92,14 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path=='/recover':
                 if not agent_id:raise ValueError('Supervisor obrigatório.')
                 result=core.recover(data['job_id'],data.get('reason'),data.get('revised_task'),caller_agent_id=agent_id)
+            elif self.path=='/repair-integration':
+                result=core.repair_integration(data['job_id'],data.get('blocked_task'),data.get('repair_task'),data.get('reason'),caller_agent_id=agent_id)
             elif self.path=='/resume':
                 result=core.resume(data['job_id'],data.get('reason'),caller_agent_id=agent_id)
             else:self.send_error(404);return
             payload=core.encoded(result).encode();self.send_response(200)
             self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(payload)));self.end_headers();self.wfile.write(payload)
-            if self.path in {'/submit','/approve','/recover','/resume'}:WAKE.set()
+            if self.path in {'/submit','/approve','/recover','/repair-integration','/resume'}:WAKE.set()
         except Exception as error:
             payload=core.encoded({'error':str(error)}).encode();self.send_response(400)
             self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(payload)
