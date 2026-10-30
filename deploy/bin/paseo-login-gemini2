@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+"""Login isolado para nova conta 2 após validação."""
+import os,sys
+from pathlib import Path
+if os.getuid()==0:sys.exit('Execute como enok. Saia do root com exit.')
+home=Path('/home/enok/.local/share/paseo-gemini-accounts/account2-new')
+home.mkdir(parents=True,exist_ok=True);home.chmod(0o700)
+env=dict(os.environ,HOME=str(home),XDG_CONFIG_HOME=str(home/'.config'),XDG_DATA_HOME=str(home/'.local/share'),XDG_CACHE_HOME=str(home/'.cache'),DBUS_SESSION_BUS_ADDRESS='unix:path='+str(home/'no-bus'))
+for k in ['GEMINI_API_KEY','GOOGLE_API_KEY','GOOGLE_APPLICATION_CREDENTIALS','AGY_ADC_AUTH','GOOGLE_CLOUD_PROJECT','GOOGLE_CLOUD_QUOTA_PROJECT','GOOGLE_GEMINI_BASE_URL']:env.pop(k,None)
+os.execve('/home/enok/.local/bin/agy',['agy','--model','gemini-3.8-flash-high','--effort','high']+sys.argv[1:],env)

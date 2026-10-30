@@ -1,0 +1,19 @@
+[Unit]
+Description=Paseo account capacity broker (loopback only)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/app/projects/paseo-orchestrator
+Environment=PATH=/home/app/.local/share/node24/bin:/usr/bin:/bin
+Environment=PYTHONPATH=/home/app/projects/paseo-orchestrator
+Environment=PASEO_ADMISSION_DB=/home/app/srv_projetos/orchestration/admission.sqlite3
+Environment=PASEO_CAPACITY_URL=http://127.0.0.1:6771
+Environment=PASEO_CAPACITY_TOKEN_FILE=/home/app/srv_projetos/config/account-capacity.token
+Environment=PASEO_ACCOUNT_ID=ACCOUNT_ID_RECONFIGURE
+ExecStart=/usr/bin/python3 -m orchestrator.account_broker serve --db /home/app/srv_projetos/orchestration/account-capacity.sqlite3 --token-file /home/app/srv_projetos/config/account-capacity.token --account-id ACCOUNT_ID_RECONFIGURE --bind 127.0.0.1 --port 6771
+Restart=on-failure
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

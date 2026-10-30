@@ -1,0 +1,5 @@
+#!/bin/bash
+export PASEO_HOME=/home/enok/srv_projetos
+export HOME=/home/enok/srv_projetos/runtime/control-home
+export PATH=/home/enok/.local/share/node24/bin:/home/enok/.local/bin:/usr/local/bin:/usr/bin:/bin
+exec /home/enok/.local/share/node24/bin/node /home/enok/.local/share/node24/bin/paseo --home /home/enok/srv_projetos "$@"

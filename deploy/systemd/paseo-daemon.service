@@ -1,0 +1,21 @@
+[Unit]
+Description=Paseo daemon - nexoisp (supervised foreground)
+After=network-online.target
+[Service]
+Type=simple
+Environment=HOME=/home/enok
+Environment=PATH=/home/enok/.local/share/node24/bin:/home/enok/.local/share/paseo-orchestrator/bin:/home/enok/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PASEO_ADMISSION_DB=/home/enok/srv_projetos/orchestration/admission.sqlite3
+Environment=PASEO_CAPACITY_TOKEN_FILE=/home/enok/srv_projetos/config/account-capacity.token
+Environment=PASEO_MODEL_LIMITS=/home/enok/srv_projetos/config/model-limits.json
+Environment=PASEO_ACCOUNT_CAPACITY_CONFIG=/home/enok/srv_projetos/config/account-capacity.json
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStartPre=/home/enok/.local/share/paseo-orchestrator/bin/python3 /home/enok/.local/share/paseo-policy/install.py --check
+ExecStart=/home/enok/.local/share/node24/bin/paseo daemon run --home /home/enok/srv_projetos
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillMode=control-group
+UMask=0077
+[Install]
+WantedBy=default.target

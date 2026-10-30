@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec python3 /home/enok/.local/share/paseo-orchestrator/flow.py "$@"

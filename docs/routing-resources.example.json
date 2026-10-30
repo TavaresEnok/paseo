@@ -1,0 +1,37 @@
+{
+  "resources": {
+    "max_workers": 2,
+    "max_total_agents": 3,
+    "min_available_mib": 1024,
+    "estimated_worker_mib": 512,
+    "min_disk_free_gib": 5,
+    "max_disk_used_fraction": 0.95,
+    "max_load_per_cpu": 0.9,
+    "max_cpu_percent": 90,
+    "max_memory_psi_avg10": 2.0,
+    "max_io_psi_avg10": 10.0,
+    "max_swap_io_mib_per_second": 8.0,
+    "max_sample_age_seconds": 30
+  },
+  "routing": {
+    "weights": {
+      "capability": 0.4,
+      "success": 0.25,
+      "latency": 0.1,
+      "quota": 0.1,
+      "diversity": 0.1,
+      "economy": 0.05
+    },
+    "unknown_prior": 0.5,
+    "history_prior_strength": 2,
+    "reference_latency_seconds": 120,
+    "catalog_max_age_seconds": 86400,
+    "quota_max_age_seconds": 900,
+    "max_concurrent_per_model": 2,
+    "max_concurrent_per_provider": 2,
+    "allowed_cost_kinds": ["subscription", "free"],
+    "require_cost_source": true,
+    "require_authenticated": true,
+    "minimum_remaining_fraction": 0.01
+  }
+}

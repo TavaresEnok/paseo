@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+"""Launch protected Paseo profiles; global admission is enforced by the daemon."""
+import argparse
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+CONFIG = Path('/home/enok/srv_projetos/config/profiles.json')
+POLICY_DIR = Path('/home/enok/.local/share/paseo-policy')
+PASEO = '/home/enok/.local/share/node24/bin/paseo'
+DAEMON_HOME = '/home/enok/srv_projetos'
+
+def main():
+    config = json.loads(CONFIG.read_text())
+    parser = argparse.ArgumentParser(description='Perfis Paseo com limite global e aprovação humana.')
+    commands = parser.add_subparsers(dest='command', required=True)
+    commands.add_parser('list')
+    commands.add_parser('status')
+    run = commands.add_parser('run')
+    run.add_argument('profile', choices=config['profiles'])
+    run.add_argument('prompt')
+    for name in ['cwd', 'new-branch', 'base', 'worktree-slug', 'thinking', 'wait-timeout']:
+        run.add_argument('--' + name)
+    run.add_argument('--image', action='append', default=[])
+    run.add_argument('--no-wait', action='store_true')
+    run.add_argument('--json', action='store_true')
+    args = parser.parse_args()
+    if args.command == 'list':
+        for key, profile in config['profiles'].items():
+            print(f"{key:<22} {profile['provider']:<10} {profile['default_model']:<36} {profile['role']}")
+        return 0
+    checked = subprocess.run([sys.executable, str(POLICY_DIR / 'install.py'), '--check'])
+    if checked.returncode:
+        return checked.returncode
+    env = {**os.environ, 'PATH': '/home/enok/.local/share/node24/bin:' + os.environ.get('PATH', '')}
+    if args.command == 'status':
+        print(f"Limite global: {config['max_concurrent_executors']} agentes executando ou aguardando aprovação.", flush=True)
+        print('Aprovações pontuais; modos de aprovação automática bloqueados.', flush=True)
+        return subprocess.run([PASEO, 'daemon', 'status', '--home', DAEMON_HOME], env=env).returncode
+    profile = config['profiles'][args.profile]
+    if args.thinking is None:
+        args.thinking = profile.get('thinking_option')
+    command = [PASEO, 'run', '--home', DAEMON_HOME,
+               '--provider', f"{profile['provider']}/{profile['default_model']}",
+               '--mode', profile['mode'], '--new-workspace', 'worktree',
+               '--worktree-mode', config['default_worktree_mode'],
+               '--title', f'[{args.profile}] {args.prompt[:40]}']
+    for name in ['cwd', 'new_branch', 'base', 'worktree_slug', 'thinking', 'wait_timeout']:
+        value = getattr(args, name)
+        if value is not None:
+            command.extend(['--' + name.replace('_', '-'), value])
+    for path in args.image:
+        command.extend(['--image', path])
+    for name in ['no_wait', 'json']:
+        if getattr(args, name):
+            command.append('--' + name.replace('_', '-'))
+    command.extend(['--', args.prompt])
+    print(f"Executando {profile['name']} em worktree separada, com aprovação humana.", flush=True)
+    return subprocess.run(command, env=env).returncode
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, KeyError) as error:
+        print(f'Erro: {error}', file=sys.stderr)
+        sys.exit(1)

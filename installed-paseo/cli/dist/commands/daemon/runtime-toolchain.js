@@ -1,0 +1,87 @@
+import { platform } from "node:os";
+import { execCommand } from "@getpaseo/server/process";
+function normalizeError(error) {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return String(error);
+}
+async function resolveNodePathFromPidUnix(pid) {
+    try {
+        const { stdout } = await execCommand("ps", ["-o", "comm=", "-p", String(pid)]);
+        const resolved = stdout.trim();
+        return resolved
+            ? { nodePath: resolved }
+            : { nodePath: null, error: "ps returned an empty command path" };
+    }
+    catch (error) {
+        return { nodePath: null, error: `ps failed: ${normalizeError(error)}` };
+    }
+}
+async function runProcessProbe(command, args, options) {
+    try {
+        const { stdout } = await execCommand(command, args, { shell: options?.shell });
+        const resolved = stdout.trim();
+        return resolved
+            ? { resolved }
+            : { resolved: null, error: `${command} returned no executable path` };
+    }
+    catch (error) {
+        return { resolved: null, error: `${command} failed: ${normalizeError(error)}` };
+    }
+}
+async function resolveNodePathFromPidWindows(pid) {
+    const probes = [
+        {
+            label: "powershell-cim",
+            command: "powershell.exe",
+            args: [
+                "-NoProfile",
+                "-Command",
+                `(Get-CimInstance Win32_Process -Filter "ProcessId = ${pid}").ExecutablePath`,
+            ],
+        },
+        {
+            label: "powershell-process",
+            command: "powershell.exe",
+            args: ["-NoProfile", "-Command", `(Get-Process -Id ${pid}).Path`],
+        },
+        {
+            label: "wmic",
+            command: "wmic",
+            args: ["process", "where", `ProcessId=${pid}`, "get", "ExecutablePath", "/VALUE"],
+            parseValue: (stdout) => {
+                const match = stdout.match(/ExecutablePath=(.+)/);
+                return match?.[1]?.trim() ?? null;
+            },
+        },
+    ];
+    const errors = [];
+    async function tryProbe(index) {
+        if (index >= probes.length) {
+            return {
+                nodePath: null,
+                error: errors.join("; ") || "could not resolve executable path from PID",
+            };
+        }
+        const probe = probes[index];
+        const result = await runProcessProbe(probe.command, probe.args, { shell: false });
+        if (result.resolved) {
+            const resolved = probe.parseValue ? probe.parseValue(result.resolved) : result.resolved;
+            if (resolved)
+                return { nodePath: resolved };
+            errors.push(`${probe.label} returned no executable path`);
+        }
+        else if (result.error) {
+            errors.push(`${probe.label}: ${result.error}`);
+        }
+        return tryProbe(index + 1);
+    }
+    return tryProbe(0);
+}
+export async function resolveNodePathFromPid(pid) {
+    return platform() === "win32"
+        ? await resolveNodePathFromPidWindows(pid)
+        : await resolveNodePathFromPidUnix(pid);
+}
+//# sourceMappingURL=runtime-toolchain.js.map

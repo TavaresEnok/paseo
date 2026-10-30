@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "auto_approve_development_plans": true,
+  "authorization": "RECONFIGURE_BEFORE_USE",
+  "scope": "user_project_tools_unrestricted",
+  "default_directory": "/home/enok/Documentos/projetos",
+  "protected_effects": [
+    "additional_cost"
+  ],
+  "unattended_development": true,
+  "hide_worker_workspaces": true,
+  "archive_completed_workspaces": true,
+  "unrestricted_tools": true,
+  "manager_host_access": true
+}

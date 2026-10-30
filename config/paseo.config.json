@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "daemon": {
+    "listen": "127.0.0.1:6767",
+    "mcp": {
+      "injectIntoAgents": true
+    },
+    "agentProfiles": [
+      {
+        "id": "etapa2-supervisor",
+        "name": "Gerente principal — GPT-6.1 Sol Alto",
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "modeId": "full-access",
+        "thinkingOptionId": "high",
+        "featureValues": {},
+        "notes": "Gerente único; planeja e delega. Reserva somente por quota confirmada. Astra somente exceção temporária Médio. Respeitar pausa explícita.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-backend",
+        "name": "Backend e programação geral — Grok 4.7 Médio",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-frontend",
+        "name": "Frontend — Grok 4.7 Médio",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-avancado",
+        "name": "Programação complexa — Grok 4.7 Médio",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-qa",
+        "name": "Revisor principal — Sonnet 5.5 Alto",
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "modeId": "acceptEdits",
+        "thinkingOptionId": "high",
+        "featureValues": {},
+        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-auxiliar",
+        "name": "Auxiliar — Grok 4.7 Médio",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-supervisor-fallback",
+        "name": "Gerente substituto — Sonnet 5.5 Alto",
+        "provider": "claude",
+        "model": "claude-sonnet-5-5",
+        "modeId": "bypassPermissions",
+        "thinkingOptionId": "high",
+        "featureValues": {},
+        "notes": "Gerente único; planeja e delega. Reserva somente por quota confirmada. Astra somente exceção temporária Médio. Respeitar pausa explícita.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-arquiteto",
+        "name": "Planejamento da gerência — GPT-6.1 Sol Alto",
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "modeId": "full-access",
+        "thinkingOptionId": "high",
+        "featureValues": {},
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-codex-luna",
+        "name": "Codex econômico — Luna 6",
+        "provider": "codex",
+        "model": "gpt-6-luna",
+        "modeId": "auto",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-codex-terra",
+        "name": "Codex econômico — Terra 5.6",
+        "provider": "codex",
+        "model": "gpt-5.6-terra",
+        "modeId": "auto",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-grok",
+        "name": "Grok 4.7 — assinatura SuperGrok",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "medium",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-qa-fallback",
+        "name": "Revisor substituto — GPT-6.1 Sol Médio",
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "modeId": "auto",
+        "thinkingOptionId": "medium",
+        "featureValues": {},
+        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-supervisor-astra",
+        "name": "Gerente temporário — Astra Médio",
+        "provider": "codex",
+        "model": "gpt-6-astra",
+        "modeId": "full-access",
+        "thinkingOptionId": "medium",
+        "notes": "Gerente único; planeja e delega. Reserva somente por quota confirmada. Astra somente exceção temporária Médio. Respeitar pausa explícita.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-qa-grok",
+        "name": "Revisor alternativo — Grok 4.7 Alto",
+        "provider": "grok",
+        "model": "grok-4.7",
+        "thinkingOptionId": "high",
+        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-qa-fallback-high",
+        "name": "Revisor substituto — Sol Alto para Grok/Gemini",
+        "provider": "codex",
+        "model": "gpt-6.1-sol",
+        "modeId": "auto",
+        "thinkingOptionId": "high",
+        "notes": "Revisão independente. Sonnet Alto principal; Sol Alto para Grok/Terra/Gemini e Sol Médio para Sol. Grok Alto se Sonnet e GPT esgotarem.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-programmer-gemini2",
+        "name": "Programação — Gemini Alto conta 3",
+        "provider": "antigravity2",
+        "model": "gemini-3.8-flash-high",
+        "modeId": "full-access",
+        "notes": "Somente Gemini conta 3 Flash Alto; programação após Grok e Terra esgotarem. Exige ticket; revisão em sessão independente.",
+        "enabled": true
+      },
+      {
+        "id": "etapa2-programmer-terra",
+        "name": "Programação — GPT-6.1 Terra Médio (conta exclusiva)",
+        "provider": "codex-programmer",
+        "model": "gpt-6.1-terra",
+        "modeId": "auto",
+        "thinkingOptionId": "medium",
+        "featureValues": {},
+        "notes": "Conta exclusiva de programação; Terra Médio, após Grok Médio e antes de Gemini conta 3 Alto. Exige ticket do controlador; não gerencia nem revisa.",
+        "enabled": true
+      }
+    ],
+    "cors": {
+      "allowedOrigins": [
+        "https://app.paseo.sh"
+      ]
+    },
+    "relay": {
+      "enabled": true
+    }
+  },
+  "app": {
+    "baseUrl": "https://app.paseo.sh"
+  },
+  "pluginsEnabled": true,
+  "plugins": {
+    "gemini-local-usage": {
+      "source": "directory",
+      "path": "/home/enok/.local/share/paseo-gemini-usage",
+      "enabled": true
+    },
+    "gemini-account2-provider": {
+      "source": "directory",
+      "path": "/home/enok/.local/share/paseo-gemini-account2-provider",
+      "enabled": true
+    },
+    "gemini-new2-provider": {
+      "source": "directory",
+      "path": "/home/enok/.local/share/paseo-gemini-new2-provider",
+      "enabled": false
+    }
+  },
+  "agents": {
+    "providers": {
+      "claude": {
+        "command": [
+          "/home/enok/.local/share/paseo-orchestrator/native/isolated-provider.py",
+          "claude"
+        ],
+        "env": {
+          "CLAUDE_CONFIG_DIR": "/home/enok/srv_projetos/runtime/isolated/claude/home/.claude",
+          "CODEX_HOME": "/home/enok/srv_projetos/runtime/isolated/claude/home/.codex",
+          "XDG_DATA_HOME": "/home/enok/srv_projetos/runtime/isolated/claude/home/.local/share",
+          "XDG_CONFIG_HOME": "/home/enok/srv_projetos/runtime/isolated/claude/home/.config",
+          "XDG_CACHE_HOME": "/home/enok/srv_projetos/runtime/isolated/claude/home/.cache",
+          "PASEO_FLOW_URL": "http://127.0.0.1:6770"
+        },
+        "paseoTools": {
+          "enabled": true,
+          "disabledTools": [
+            "respond_to_permission",
+            "create_terminal",
+            "send_terminal_keys",
+            "kill_terminal",
+            "start_workspace_script",
+            "stop_workspace_script",
+            "archive_workspace",
+            "kill_agent",
+            "create_schedule",
+            "create_heartbeat",
+            "delete_heartbeat",
+            "pause_schedule",
+            "resume_schedule",
+            "delete_schedule",
+            "update_schedule",
+            "run_schedule_once"
+          ]
+        }
+      },
+      "codex": {
+        "command": [
+          "/home/enok/.local/share/paseo-orchestrator/native/isolated-provider.py",
+          "codex"
+        ],
+        "env": {
+          "CLAUDE_CONFIG_DIR": "/home/enok/srv_projetos/runtime/isolated/codex/home/.claude",
+          "CODEX_HOME": "/home/enok/srv_projetos/runtime/isolated/codex/home/.codex",
+          "XDG_DATA_HOME": "/home/enok/srv_projetos/runtime/isolated/codex/home/.local/share",
+          "XDG_CONFIG_HOME": "/home/enok/srv_projetos/runtime/isolated/codex/home/.config",
+          "XDG_CACHE_HOME": "/home/enok/srv_projetos/runtime/isolated/codex/home/.cache",
+          "PASEO_FLOW_URL": "http://127.0.0.1:6770"
+        },
+        "paseoTools": {
+          "enabled": true,
+          "disabledTools": [
+            "respond_to_permission",
+            "create_terminal",
+            "send_terminal_keys",
+            "kill_terminal",
+            "start_workspace_script",
+            "stop_workspace_script",
+            "archive_workspace",
+            "kill_agent",
+            "create_schedule",
+            "create_heartbeat",
+            "delete_heartbeat",
+            "pause_schedule",
+            "resume_schedule",
+            "delete_schedule",
+            "update_schedule",
+            "run_schedule_once"
+          ]
+        }
+      },
+      "grok": {
+        "extends": "acp",
+        "label": "Grok CLI — assinatura",
+        "command": [
+          "/home/enok/.local/share/paseo-orchestrator/native/grok-provider",
+          "agent",
+          "--model",
+          "grok-4.7",
+          "--always-approve",
+          "--no-leader",
+          "stdio"
+        ],
+        "options": {
+          "clientCapabilities": {
+            "fs": {
+              "readTextFile": false,
+              "writeTextFile": false
+            },
+            "terminal": false
+          }
+        },
+        "models": [
+          {
+            "id": "grok-4.7",
+            "label": "Grok 4.7",
+            "isDefault": true,
+            "thinkingOptions": [
+              {
+                "id": "medium",
+                "label": "Médio",
+                "isDefault": true
+              },
+              {
+                "id": "high",
+                "label": "Alto",
+                "isDefault": false
+              }
+            ]
+          }
+        ],
+        "paseoTools": {
+          "enabled": true
+        },
+        "enabled": true
+      },
+      "antigravity": {
+        "command": [
+          "/home/enok/.local/share/paseo-orchestrator/native/gemini-provider"
+        ],
+        "env": {
+          "HOME": "/home/enok",
+          "XDG_CONFIG_HOME": "/home/enok/.config",
+          "XDG_DATA_HOME": "/home/enok/.local/share",
+          "XDG_CACHE_HOME": "/home/enok/.cache"
+        },
+        "paseoTools": {
+          "enabled": false
+        },
+        "enabled": false
+      },
+      "codex-programmer": {
+        "extends": "codex",
+        "label": "Codex — conta programador",
+        "command": [
+          "/home/enok/.local/share/paseo-orchestrator/native/isolated-provider.py",
+          "codex-programmer"
+        ],
+        "env": {
+          "HOME": "/home/enok/srv_projetos/runtime/isolated/codex-programmer/home",
+          "CODEX_HOME": "/home/enok/srv_projetos/runtime/isolated/codex-programmer/home/.codex"
+        },
+        "models": [
+          {
+            "id": "gpt-6.1-terra",
+            "label": "GPT-6.1 Terra Médio — programação",
+            "thinkingOptions": [
+              {
+                "id": "medium",
+                "label": "Médio"
+              }
+            ]
+          }
+        ],
+        "enabled": true
+      }
+    },
+    "skills": {
+      "selection": {
+        "mode": "custom",
+        "skills": [
+          "paseo",
+          "paseo-advisor",
+          "paseo-committee",
+          "paseo-handoff",
+          "paseo-help"
+        ]
+      }
+    }
+  },
+  "features": {
+    "webUi": {
+      "enabled": true
+    }
+  }
+}

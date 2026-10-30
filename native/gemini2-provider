@@ -1,0 +1,57 @@
+#!/home/enok/.local/bin/python3.12
+"""Official Antigravity OAuth CLI; pin Gemini High and record usage without prompt text."""
+import json,os,signal,sqlite3,subprocess,sys,time,re
+from pathlib import Path
+ROOT=Path('/home/enok/srv_projetos/orchestration/evidence')
+DB=ROOT/'gemini2-usage.sqlite3'
+args=sys.argv[1:]
+env=dict(os.environ,HOME='/home/enok/.local/share/paseo-gemini-accounts/account2',XDG_CONFIG_HOME='/home/enok/.local/share/paseo-gemini-accounts/account2/.config',XDG_DATA_HOME='/home/enok/.local/share/paseo-gemini-accounts/account2/.local/share',XDG_CACHE_HOME='/home/enok/.local/share/paseo-gemini-accounts/account2/.cache',DBUS_SESSION_BUS_ADDRESS='unix:path=/home/enok/.local/share/paseo-gemini-accounts/account2/no-bus')
+for name in ['GEMINI_API_KEY','GOOGLE_API_KEY','GOOGLE_APPLICATION_CREDENTIALS','AGY_ADC_AUTH','GOOGLE_CLOUD_PROJECT','GOOGLE_CLOUD_QUOTA_PROJECT','GOOGLE_GEMINI_BASE_URL']:
+ env.pop(name,None)
+settings=Path('/home/enok/.local/share/paseo-gemini-accounts/account2/.gemini/antigravity-cli/settings.json')
+if settings.exists() and json.loads(settings.read_text()).get('modelProvider'):
+ sys.exit('Gemini requires account OAuth; modelProvider API mode is blocked.')
+if '--settings' in args:sys.exit('Per-session provider overrides are blocked.')
+probe=bool(args and args[0] in ['models','--version','--help','help'])
+if probe:os.execve('/home/enok/.local/bin/agy',['agy']+args,env)
+for flag,required in [('--model','gemini-3.8-flash-high'),('--effort','high')]:
+ if flag in args:
+  if args[args.index(flag)+1]!=required:sys.exit('Gemini restricted to 3.8 Flash High.')
+ else:args.extend([flag,required])
+ROOT.mkdir(parents=True,exist_ok=True)
+def connect():
+ db=sqlite3.connect(DB,timeout=10)
+ db.execute('CREATE TABLE IF NOT EXISTS usage (key TEXT PRIMARY KEY, input INTEGER, output INTEGER, cached INTEGER, thinking INTEGER, at REAL)')
+ db.execute('CREATE TABLE IF NOT EXISTS health (id INTEGER PRIMARY KEY CHECK(id=1), status TEXT, at REAL)')
+ if 'message' not in {r[1] for r in db.execute('PRAGMA table_info(health)')}:db.execute('ALTER TABLE health ADD COLUMN message TEXT')
+ return db
+seen=set()
+def record(key,u):
+ with connect() as db:
+  db.execute('INSERT OR IGNORE INTO usage VALUES(?,?,?,?,?,?)',(key,int(u.get('input_tokens',0)),int(u.get('output_tokens',0)),int(u.get('cache_read_tokens',0)),int(u.get('thinking_tokens',0)),time.time()))
+def health(status,message=''):
+ with connect() as db:db.execute('INSERT OR REPLACE INTO health(id,status,at,message) VALUES(1,?,?,?)',(status,time.time(),str(message)[:2000]))
+p=subprocess.Popen(['/home/enok/.local/bin/python3.12','/home/enok/.local/share/paseo-orchestrator/native/isolated-provider.py','antigravity2']+args,env=env,stdin=sys.stdin,stdout=subprocess.PIPE,text=True,bufsize=1)
+def stop(sig,frame):
+ if p.poll() is None:p.send_signal(sig)
+signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
+turn=0; conversation='';done=set()
+for line in p.stdout:
+ sys.stdout.write(line);sys.stdout.flush()
+ try:
+  v=json.loads(line)
+  if v.get('event')=='init':conversation=v.get('conversation_id','')
+  step=v.get('step_update') or {}
+  if step.get('state')=='DONE' and step.get('usage') and step.get('step_type')=='agent_response':
+   idx=step['step_index'];key=f'{conversation}:{turn}:{idx}:{os.getpid()}'
+   if idx not in done:record(key,step['usage']);done.add(idx)
+  result=v.get('result') if v.get('event')=='result' else v
+  if isinstance(result,dict) and result.get('status')=='SUCCESS':
+   if result.get('usage') and not done:record(f'{result.get("conversation_id",conversation)}:print:{os.getpid()}:{turn}',result['usage'])
+   health('available');turn+=1;done.clear()
+  elif isinstance(result,dict) and result.get('status')=='ERROR':
+   sys.path.insert(0,'/home/enok/.local/share/paseo-orchestrator')
+   from orchestrator.policy_runtime import explicit_quota_text
+   if explicit_quota_text(result.get('error')):health('exhausted',result.get('error'))
+ except (ValueError,KeyError,TypeError,sqlite3.Error):pass
+sys.exit(p.wait())

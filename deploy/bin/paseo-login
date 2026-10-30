@@ -1,0 +1,19 @@
+#!/bin/bash
+set -euo pipefail
+NEXO_PROVIDER="${1:-}"
+case "$NEXO_PROVIDER" in
+ grok|codex|claude) ;;
+ *) echo 'Uso: paseo-login grok|codex|claude' >&2; exit 2;;
+esac
+NEXO_LOGIN_HOME="/home/enok/srv_projetos/runtime/isolated/$NEXO_PROVIDER/home"
+export HOME="$NEXO_LOGIN_HOME"
+export PATH=/home/enok/.local/share/node24/bin:/home/enok/.local/bin:/usr/local/bin:/usr/bin:/bin
+export CLAUDE_CONFIG_DIR="$NEXO_LOGIN_HOME/.claude"
+export CODEX_HOME="$NEXO_LOGIN_HOME/.codex"
+export GROK_HOME="$NEXO_LOGIN_HOME/.grok"
+export GROK_DISABLE_AUTOUPDATER=1
+case "$NEXO_PROVIDER" in
+ grok) exec /home/enok/.local/share/node24/bin/grok login --device-auth ;;
+ codex) exec /home/enok/.local/share/node24/bin/codex login --device-auth ;;
+ claude) exec /home/enok/.local/share/node24/bin/claude auth login --claudeai ;;
+esac

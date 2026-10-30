@@ -1,0 +1,13 @@
+[Unit]
+Description=Paseo reverse SSH tunnel from principal to nexoisp
+After=paseo-account-broker.service
+Requires=paseo-account-broker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssh -NT -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o BatchMode=yes -o IdentitiesOnly=yes -o PasswordAuthentication=no -o PreferredAuthentications=publickey -o KbdInteractiveAuthentication=no -i /home/app/.local/share/paseo-account-broker/id_ed25519 -p 22026 -R 127.0.0.1:6771:127.0.0.1:6771 enok@177.104.156.25
+Restart=on-failure
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

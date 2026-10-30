@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+import os,sys
+if os.getuid()==0:sys.exit('Execute como enok; saia do root com exit.')
+h='/home/enok/srv_projetos/runtime/isolated/codex-programmer/home'
+e=dict(os.environ,HOME=h,CODEX_HOME=h+'/.codex',XDG_CONFIG_HOME=h+'/.config',XDG_DATA_HOME=h+'/.local/share',XDG_CACHE_HOME=h+'/.cache')
+for k in ['OPENAI_API_KEY','OPENAI_BASE_URL','CODEX_API_KEY']:e.pop(k,None)
+os.execve('/home/enok/.local/share/node24/bin/codex',['codex','login','--device-auth'],e)

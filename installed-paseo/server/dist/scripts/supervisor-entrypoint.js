@@ -1,0 +1,176 @@
+import { fileURLToPath } from "url";
+import { appendFileSync, existsSync, mkdirSync } from "node:fs";
+import path from "node:path";
+import { acquirePidLock, PidLockError, releasePidLock, startPidLockHeartbeat, updatePidLock, } from "../src/server/pid-lock.js";
+import { resolvePaseoHome } from "../src/server/paseo-home.js";
+import { daemonLogPath } from "../src/server/daemon-instance.js";
+import { PRIVATE_FILE_MODE } from "../src/server/private-files.js";
+import { loadPersistedConfig } from "../src/server/persisted-config.js";
+import { runSupervisor } from "./supervisor.js";
+import { resolveSupervisorLogFile } from "./supervisor-log-config.js";
+process.title = "Paseo Supervisor";
+function parseConfig(argv) {
+    let devMode = false;
+    const workerArgs = [];
+    for (const arg of argv) {
+        if (arg === "--dev") {
+            devMode = true;
+            continue;
+        }
+        if (arg === "--reclaim-stale-pid-lock") {
+            throw new Error("--reclaim-stale-pid-lock was removed: stop the existing supervisor before starting another.");
+        }
+        workerArgs.push(arg);
+    }
+    return { devMode, workerArgs };
+}
+function resolveWorkerEntry() {
+    const candidates = [
+        fileURLToPath(new URL("../server/server/daemon-worker.js", import.meta.url)),
+        fileURLToPath(new URL("../dist/server/server/daemon-worker.js", import.meta.url)),
+        fileURLToPath(new URL("../src/server/daemon-worker.ts", import.meta.url)),
+        fileURLToPath(new URL("../../src/server/daemon-worker.ts", import.meta.url)),
+    ];
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            return candidate;
+        }
+    }
+    return candidates[0];
+}
+function resolveDevWorkerEntry() {
+    const candidate = fileURLToPath(new URL("../src/server/daemon-worker.ts", import.meta.url));
+    if (!existsSync(candidate)) {
+        throw new Error(`Dev worker entry not found: ${candidate}`);
+    }
+    return candidate;
+}
+function resolveWorkerExecArgv(workerEntry, devMode) {
+    const execArgv = workerEntry.endsWith(".ts") ? ["--import", "tsx"] : [];
+    if (!devMode) {
+        return execArgv;
+    }
+    const devArgs = [
+        "--heapsnapshot-near-heap-limit=3",
+        "--max-old-space-size=3072",
+        "--report-on-fatalerror",
+        "--report-directory=/tmp/paseo-reports",
+    ];
+    const inspectArg = process.env.PASEO_NODE_INSPECT ?? "--inspect";
+    if (inspectArg !== "0" && inspectArg !== "false" && inspectArg !== "off") {
+        devArgs.push(inspectArg);
+    }
+    return [...devArgs, ...execArgv];
+}
+function resolvePackagedNodeEntrypointRunnerPath(currentScriptPath) {
+    const packageMarker = `${path.sep}node_modules${path.sep}@getpaseo${path.sep}server${path.sep}`;
+    const markerIndex = currentScriptPath.lastIndexOf(packageMarker);
+    if (markerIndex === -1) {
+        return null;
+    }
+    const appRoot = currentScriptPath.slice(0, markerIndex);
+    const runnerPath = path.join(appRoot, "dist", "daemon", "node-entrypoint-runner.js");
+    return existsSync(runnerPath) ? runnerPath : null;
+}
+async function main() {
+    const config = parseConfig(process.argv.slice(2));
+    const workerEntry = config.devMode ? resolveDevWorkerEntry() : resolveWorkerEntry();
+    const workerExecArgv = resolveWorkerExecArgv(workerEntry, config.devMode);
+    const workerEnv = { ...process.env };
+    const packagedNodeEntrypointRunner = process.env.ELECTRON_RUN_AS_NODE === "1"
+        ? resolvePackagedNodeEntrypointRunnerPath(fileURLToPath(import.meta.url))
+        : null;
+    const paseoHome = resolvePaseoHome(workerEnv);
+    const persistedConfig = loadPersistedConfig(paseoHome);
+    const supervisorLogFile = resolveSupervisorLogFile(paseoHome, persistedConfig, workerEnv);
+    try {
+        await acquirePidLock(paseoHome, null, {
+            ownerPid: process.pid,
+        });
+    }
+    catch (error) {
+        if (error instanceof PidLockError) {
+            failStartup(error.message, error.message);
+        }
+        throw error;
+    }
+    let lockReleased = false;
+    let requestSupervisorShutdown = null;
+    const stopLockHeartbeat = startPidLockHeartbeat(paseoHome, {
+        ownerPid: process.pid,
+        onError: (error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            process.stderr.write(`PID lock heartbeat failed: ${message}\n`);
+            if (error instanceof PidLockError) {
+                requestSupervisorShutdown?.("pid_lock_ownership_lost");
+            }
+        },
+    });
+    const releaseLock = async () => {
+        if (lockReleased) {
+            return;
+        }
+        lockReleased = true;
+        stopLockHeartbeat();
+        await releasePidLock(paseoHome, {
+            ownerPid: process.pid,
+        });
+    };
+    const supervisor = runSupervisor({
+        name: "DaemonRunner",
+        startupMessage: "Starting daemon worker (IPC restart and crash restart enabled)",
+        resolveWorkerEntry: () => workerEntry,
+        workerArgs: config.workerArgs,
+        workerEnv,
+        workerExecArgv,
+        resolveWorkerSpawnSpec: packagedNodeEntrypointRunner
+            ? (resolvedWorkerEntry) => ({
+                command: process.execPath,
+                args: [
+                    packagedNodeEntrypointRunner,
+                    "node-script",
+                    resolvedWorkerEntry,
+                    ...config.workerArgs,
+                ],
+                env: {
+                    ...workerEnv,
+                    ELECTRON_RUN_AS_NODE: "1",
+                },
+            })
+            : undefined,
+        restartOnCrash: true,
+        logFile: supervisorLogFile,
+        onWorkerReady: async ({ listen, serverId }) => {
+            await updatePidLock(paseoHome, { listen, serverId }, { ownerPid: process.pid });
+        },
+        onWorkerExit: () => updatePidLock(paseoHome, { listen: null, serverId: null }, { ownerPid: process.pid }),
+        onSupervisorExit: releaseLock,
+    });
+    requestSupervisorShutdown = supervisor.requestShutdown;
+}
+// The supervisor opens its log only after config and the PID lock succeed. A background
+// launch discards stderr, so earlier failures also go to the log the launcher points at.
+function failStartup(detail, summary) {
+    process.stderr.write(`${detail}\n`);
+    try {
+        const logPath = daemonLogPath(resolvePaseoHome(process.env));
+        mkdirSync(path.dirname(logPath), { recursive: true });
+        appendFileSync(logPath, `${JSON.stringify({
+            level: "fatal",
+            time: new Date().toISOString(),
+            pid: process.pid,
+            name: "DaemonRunner",
+            msg: summary,
+        })}\n`, { mode: PRIVATE_FILE_MODE });
+    }
+    catch {
+        // stderr already carries the failure.
+    }
+    process.exit(1);
+}
+void main().catch((error) => {
+    if (error instanceof Error)
+        failStartup(error.stack ?? error.message, error.message);
+    failStartup(String(error), String(error));
+});
+//# sourceMappingURL=supervisor-entrypoint.js.map

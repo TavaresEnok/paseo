@@ -1,0 +1,21 @@
+[Unit]
+Description=Paseo autonomous development queue - nexoisp
+After=paseo-daemon.service
+Requires=paseo-daemon.service
+[Service]
+Type=simple
+WorkingDirectory=/home/enok/.local/share/paseo-orchestrator
+Environment=HOME=/home/enok
+Environment=PATH=/home/enok/.local/share/node24/bin:/home/enok/.local/share/paseo-orchestrator/bin:/home/enok/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStartPre=/home/enok/.local/share/paseo-orchestrator/bin/python3 /home/enok/.local/share/paseo-policy/install.py --check
+ExecStart=/home/enok/.local/share/paseo-orchestrator/bin/python3 /home/enok/.local/share/paseo-orchestrator/flow.py serve
+Restart=on-failure
+RestartSec=5
+MemoryHigh=1G
+MemoryMax=2G
+TasksMax=256
+Nice=10
+UMask=0077
+[Install]
+WantedBy=default.target

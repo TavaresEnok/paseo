@@ -1,0 +1,7 @@
+{
+  "url": "http://127.0.0.1:6771",
+  "token_file": "/home/enok/srv_projetos/config/account-capacity.token",
+  "account_id": "RECONFIGURE_BEFORE_USE",
+  "host_id": "RECONFIGURE_BEFORE_USE",
+  "timeout": 5
+}

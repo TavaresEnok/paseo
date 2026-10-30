@@ -1,0 +1,8 @@
+[Unit]
+Description=Private Paseo and Git project source recovery snapshot
+[Service]
+Type=oneshot
+ExecStart=/home/enok/.local/share/paseo-orchestrator/bin/python3 /home/enok/.local/share/paseo-orchestrator/native/recovery-backup.py
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
