@@ -10941,8 +10941,8 @@
     {
       "source": "/home/enok/srv_projetos/config.json",
       "path": "config/paseo.config.json",
-      "source_sha256": "d7ea6822ce45600cfed37fcc69874948c7314e03de4014b12c1ba316c0d807e7",
-      "export_sha256": "c5dbf2be05ff628918a1cc98e81a8d1a6e0c48bdc5ef0b3f54d8a2e27986f198",
+      "source_sha256": "8f5a4ae5248899a0114bf00de2ef2ec152d50e347c6a74de7dfd8b4e84b501f6",
+      "export_sha256": "80705e9e85771cc35c9c2aa13a5be7fbef4992fdee475c646925896a131e720e",
       "sanitized": true
     },
     {
