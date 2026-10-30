@@ -1,8 +1,9 @@
 """Operator-enforced model and reasoning budgets, shared by routing and catalog."""
 import json
+import os
 from pathlib import Path
 
-LIMITS_FILE=Path('/home/enok/srv_projetos/config/model-limits.json')
+LIMITS_FILE=Path(os.environ.get('PASEO_MODEL_LIMITS','/home/enok/srv_projetos/config/model-limits.json'))
 
 def load_limits():
     return json.loads(LIMITS_FILE.read_text())
@@ -82,10 +83,12 @@ def role_summary(limits=None):
         'Revisor recebe contexto compacto, critérios e diff; evidência completa deve ser consultada quando o resumo for insuficiente. Notificações ordinárias próximas são agrupadas por chat; bloqueios são imediatos.',
         f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra Médio só assume após esgotamento dos três; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
         'Codex programador usa conta isolada exclusivamente para programação; a conta original de gerência/revisão só pode programar na exceção emergencial Terra Médio expressamente habilitada. Somente Gemini conta 3 (antigravity2) habilitado.',
-        f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} ({review.get('fallback_thinking_option')}) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
+        f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} (Médio em tarefas normais; Alto conforme risco e criticidade quando revisão adaptativa estiver habilitada) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
         'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Terra dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
         'Astra somente gerente temporário Médio quando Claude, Grok, a conta Terra dedicada (quando habilitada) e todos os Gemini habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
         'O gerente planeja, divide escopos independentes, delega, acompanha revisões e continua o backlog autorizado; não implementa. Retorno ao modelo primário somente em fronteira segura, sem interromper trabalhador saudável.',
+        ('Orçamento de recuperação: detectar falhas repetidas sem progresso; não repetir recover quando orçamento esgotar. Preservar a tarefa e avisar o usuário; outras tarefas continuam. Extensão somente por operação humana explícita.' if (limits.get('recovery_budget') or {}).get('enabled') else ''),
+        'Gerente mantém root/sudo autorizado. Trabalhadores executam somente na worktree isolada e encaminham necessidades administrativas ao gerente.',
         'Pausas explícitas são persistentes. Não retomar por mudança de política, quota ou reboot. Pedido explícito para continuar autoriza unhold e resume do mesmo plano, sem nova confirmação. Preservar histórico e entregas; nunca duplicar executores.',
     ])
 

@@ -89,7 +89,19 @@
     "codex_exhausted_model": "grok/grok-4.7",
     "codex_exhausted_thinking_option": "high",
     "separate_session_from_implementation": true,
-    "sol_high_for_external_programmer": false
+    "sol_high_for_external_programmer": false,
+    "adaptive_effort": {
+      "enabled": true,
+      "default": "medium",
+      "high_for": [
+        "criticality",
+        "complexity",
+        "sensitive_files",
+        "destructive_change",
+        "previous_review_findings",
+        "structural_complexity"
+      ]
+    }
   },
   "programming": {
     "model": "grok/grok-4.7",
@@ -191,5 +203,12 @@
     "notifications_batch_seconds": 20,
     "urgent_blockers_immediate": true,
     "review_brief": true
+  },
+  "recovery_budget": {
+    "enabled": true,
+    "max_automatic_attempts": 8,
+    "max_active_seconds": 14400,
+    "max_same_failure": 3,
+    "manual_extension_allowed": true
   }
 }

@@ -115,7 +115,7 @@ def absorb_catalog(state, catalog, limits, *, now=None) -> dict:
     }
 
 
-def evaluate(role, catalog, limits, *, now=None, state=None, implementation_model=None) -> dict:
+def evaluate(role, catalog, limits, *, now=None, state=None, implementation_model=None, review_task=None) -> dict:
     """Choose the approved model for one role from the monotonic account state."""
     moment = _moment(now)
     absorbed = absorb_catalog(state, catalog, limits, now=moment)
@@ -136,6 +136,12 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
     choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")))
     if normalized == "manager" and choice["model_key"] == SOL_HIGH[0] and (limits.get("supervision") or {}).get("primary_thinking") == "medium":
         choice = _chosen(SOL_MEDIUM, "manager_primary_sol_medium")
+    risk = None
+    adaptive_review=(limits.get('review') or {}).get('adaptive_effort') or {}
+    if normalized == 'reviewer' and choice['model_key'] == SOL_MEDIUM[0] and adaptive_review.get('enabled'):
+        from .task_risk import assess
+        risk=assess(review_task)
+        if risk['level']=='high':choice=_chosen(SOL_HIGH,'reviewer_sol_high_by_task_risk')
     external = isinstance(implementation_model, str) and implementation_model.split("/", 1)[0] in {"codex-programmer", "grok", "antigravity", "antigravity2", "antigravity3"}
     if normalized == "reviewer" and choice["model_key"] == SOL_MEDIUM[0] and choice["thinking_option"] == "medium" and external and (limits.get("review") or {}).get("sol_high_for_external_programmer"):
         choice = _chosen(SOL_HIGH, "reviewer_fallback_sol_high_external_programmer")
@@ -160,6 +166,7 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
         "reason": choice["reason"],
         "gpt_only": gpt_only,
         "state": working,
+        "review_risk": risk,
         "evidence": effective,
     }
 

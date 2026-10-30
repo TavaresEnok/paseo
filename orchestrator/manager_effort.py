@@ -9,6 +9,12 @@ def choose(prompt, jobs, tasks):
     # Explicit planning requests are different from routine progress notifications.
     if re.search(r'(planej\w*|plan\w*|desenh\w*|defin\w*|revis\w*|reestrutur\w*)[^\n.]{0,100}(arquitet|complex|migra[çc]|seguran[çc]|redesign)', text):
         return {'effort': 'high', 'reason': 'complex_planning_request'}
+    from .task_risk import assess
+    routine=bool(re.match(r'\s*(status\b|progresso\b|como est[aá]|acompanhe\b|verifique (?:o )?progresso)',text))
+    for task in tasks:
+        if not routine and task['state'] in {'queued','pending','blocked','launching'} and not re.search(r'quota|cota|exhaust',str(task.get('error') or ''),re.I):
+            risk=assess(json.loads(task.get('spec') or '{}'))
+            if risk['level']=='high':return {'effort':'high','reason':'structured_task_risk','task_id':task['id'],'risk_reasons':risk['reasons']}
     for task in tasks:
         if task['state'] not in {'blocked', 'launching'}:
             continue

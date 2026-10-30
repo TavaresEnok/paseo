@@ -1,3 +1,5 @@
+> **PREPARAÇÃO — NÃO APLICADA AOS SERVIÇOS ATIVOS.** Esta branch contém as correções da auditoria sobre `0bf8b5c`. A instalação em uso continua na versão anterior até autorização explícita para aplicar. Consulte `docs/CORRECOES_PREPARADAS.md`.
+
 # Paseo NexoISP — implementação em uso
 
 Este repositório registra a instalação personalizada do Paseo no NexoISP, coletada em **30/10/2026**, incluindo as correções aplicadas nesse dia. Serve para revisão por outras IAs, investigação de falhas e evolução do sistema. A origem principal desta cópia é o servidor NexoISP, e não a instalação mais antiga do servidor principal.
@@ -31,7 +33,7 @@ O sistema transforma pedidos em planos, delega programação a agentes independe
 | --- | --- | --- |
 | Gerente | GPT-6.1 Sol Médio; Alto por turno para planejamento complexo/conflitos/bloqueios técnicos | Sonnet 5.5 Alto; Astra Médio somente na exceção definida na política |
 | Programador | Grok 4.7 Médio | GPT-6.1 Terra Médio, conta exclusiva → Gemini 3.8 Flash Alto, conta lógica 3 → Terra Médio da conta original como reserva emergencial → aguardar cota |
-| Revisor | Sonnet 5.5 Alto | Sol Médio para qualquer programador; alternativa Grok Alto conforme política |
+| Revisor | Sonnet 5.5 Alto | Sol Médio nas tarefas normais e Alto conforme criticidade/risco; alternativa Grok Alto conforme política |
 
 O gerente, o programador e o revisor usam sessões separadas. O Codex programador tem credenciais separadas da conta Codex de gerência/revisão. A conta lógica Gemini 3 corresponde ao provedor `antigravity2` e ao diretório histórico `account2`; esse nome não significa que a conta lógica 2 continua habilitada. O arquivo `config/model-limits.json` é a referência executável completa, inclusive exceções, recuperação de cota e concorrência.
 

@@ -17,3 +17,5 @@ id_ed25519*
 *.log
 *.bak-*
 deploy/runtime/paseo-compat
+/node_modules/
+/tests/native-deps/node_modules/

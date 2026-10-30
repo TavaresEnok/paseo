@@ -442,6 +442,8 @@ def recover(job_id, reason, revised_task=None, caller_agent_id=None):
             if not task or task['state'] not in {'blocked','queued'} or task['agent_id'] or task['launch_request']:
                 raise ValueError('Somente tarefa existente, parada e não concluída pode ser corrigida.')
             if task['phase']!='implement':raise ValueError('Não altere um contrato durante revisão ou integração.')
+            from .recovery_budget import assert_recoverable
+            assert_recoverable(db,task['id'])
             original=decode(task['spec'])
             mutable={'objective','allowed_files','acceptance','tests','max_attempts'}
             if any(original.get(key)!=revised_task.get(key) for key in set(original)|set(revised_task) if key not in mutable):
@@ -481,7 +483,11 @@ def select(db, task, active):
     spec = decode(task['spec'])
     query = {**spec, 'specialty': 'review' if task['phase']=='review' else spec.get('specialty','coding')}
     query.pop('reviewer_route', None)
-    if task['phase']=='review':query['implementation_model']=task.get('model')
+    if task['phase']=='review':
+        query['implementation_model']=task.get('model')
+        query['review_findings']=str(task.get('error') or '').startswith(('Revisão reprovou','Regressão após revisão'))
+        if task.get('cwd'):
+            query['changed_files']=[name for name in (git(task['cwd'],'diff','--name-only','-z',task.get('base_commit') or 'HEAD')+'\x00'+git(task['cwd'],'ls-files','--others','--exclude-standard','-z')).split('\x00') if name]
     excluded = list(spec.get('excluded_models', []))
     # Reviews use a separate native agent/session. The configured reviewer and
     # its quota substitute may match an implementation model without an impossible allowlist.
@@ -820,7 +826,7 @@ def _run_test_commands(cwd, commands, timeout=120):
         effective=[*command,'--ignore-scripts'] if installation and '--ignore-scripts' not in command else command
         # Tests cannot see production paths, host credentials, Docker socket or network.
         container_name = 'paseo-flow-test-' + uuid.uuid4().hex
-        argv = ['docker','run','--name',container_name,'--label','paseo.validation.managed=true','--label','paseo.validation.job='+os.environ.get('PASEO_VALIDATION_JOB',''),'--pull','never','--rm','--network','host' if provisioning else 'none','--user','1000:1000','--cap-drop','ALL',
+        argv = ['docker','run','--name',container_name,'--label','paseo.validation.managed=true','--label','paseo.validation.job='+os.environ.get('PASEO_VALIDATION_JOB',''),'--pull','never','--rm','--network',autonomy_policy().get('worker_network','paseo-workers') if provisioning else 'none','--user','1000:1000','--cap-drop','ALL',
                 '--security-opt','no-new-privileges','--security-opt','seccomp=/home/enok/srv_projetos/config/seccomp-default.json','--read-only','--memory','1536m' if command[0] in {'npm','node','pnpm','corepack','go'} else '384m','--cpus','2' if go_command else '1',
                 '--pids-limit','256','--tmpfs','/tmp:rw,nosuid,size=128m',
                 '--mount',f'type=bind,src={node},dst=/usr/local/bin/node,readonly',
@@ -957,8 +963,16 @@ def failure(db,task,error):
     if not retire(db,task):return
     archive_proof=True
     if model and not synthetic: db.execute('INSERT INTO outcomes(model,task_id,success,latency,at) VALUES(?,?,?,?,?)',(model,task['id'],0,max(0,now()-(task['started'] or now())),now()))
-    extra=task['attempt']>=max_attempts and (archive_proof or not task['agent_id']) and extend_review_budget(db,task,error)
-    state='queued' if task['attempt']<max_attempts or extra else 'blocked'
+    from .recovery_budget import charge
+    from .model_limits import load_limits
+    try:progress=worktree_digest(task['cwd']) if task['cwd'] else ''
+    except (OSError,ValueError,RuntimeError,subprocess.SubprocessError):progress='unknown'
+    budget_reason=charge(db,dict(task),str(error),load_limits().get('recovery_budget') or {},active_seconds=max(0,now()-(task['started'] or now())),progress_digest=str(progress))
+    if budget_reason:
+        error='recovery_budget:'+budget_reason+'; '+str(error)
+        event(db,'recovery_budget_exhausted',{'reason':budget_reason,'attempt':task['attempt']},task['job_id'],task['id'])
+    extra=not budget_reason and task['attempt']>=max_attempts and (archive_proof or not task['agent_id']) and extend_review_budget(db,task,error)
+    state='queued' if not budget_reason and (task['attempt']<max_attempts or extra) else 'blocked'
     db.execute("UPDATE tasks SET state=?,phase='implement',previous_agent_id=agent_id,agent_id=NULL,launch_request=NULL,retry_at=?,error=?,updated=? WHERE id=?",
                (state,now()+min(60,5*max(task['attempt'],1)),str(error)[-16000:],now(),task['id']))
     if state=='blocked':db.execute('UPDATE jobs SET notified=0 WHERE id=?',(task['job_id'],))

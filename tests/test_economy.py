@@ -21,13 +21,14 @@ class Economy(unittest.TestCase):
  def test_batch_retry_and_priority(self):
   db=self.db();sent=[];clock=[1];fail=[True]
   def send(*a,**kw):
+   if a[0]=='message-receipt':return {'state':'missing'}
    sent.append(kw)
    if fail[0]:raise OSError('transport')
   c=SimpleNamespace(now=lambda:clock[0],report=lambda j:None,bridge=send,event=lambda *a:None)
   db.executemany('INSERT INTO jobs VALUES(?,?,?,0,?)',[('a','done',1,'chat'),('b','done',1,'chat'),('c','blocked',1,'other')])
   rows=lambda:db.execute('SELECT * FROM jobs WHERE notified=0').fetchall()
   deliver(db,rows(),c);self.assertEqual(len(sent),1);self.assertEqual(sent[0]['agentId'],'other')
-  fail[0]=False;deliver(db,rows(),c);self.assertEqual(sent[0]['options']['messageId'],sent[1]['options']['messageId'])
+  fail[0]=False;clock[0]=4;deliver(db,rows(),c);self.assertEqual(sent[0]['options']['messageId'],sent[1]['options']['messageId'])
   clock[0]=22;deliver(db,rows(),c);self.assertEqual(len(sent),3);self.assertIn('a: done',sent[-1]['prompt']);self.assertIn('b: done',sent[-1]['prompt'])
   self.assertEqual(sent[-1]['options']['activeTurnBehavior'],'steer');deliver(db,rows(),c);self.assertEqual(len(sent),3)
  def test_paused_retry_not_sent(self):

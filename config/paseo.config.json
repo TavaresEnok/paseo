@@ -117,13 +117,13 @@
       },
       {
         "id": "etapa2-qa-fallback",
-        "name": "Revisor substituto — GPT-6.1 Sol Médio",
+        "name": "Revisor Sol Médio — tarefas normais",
         "provider": "codex",
         "model": "gpt-6.1-sol",
         "modeId": "auto",
         "thinkingOptionId": "medium",
         "featureValues": {},
-        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
+        "notes": "Esforço definido pelo controlador conforme risco; ticket e broker devem concordar. Revisão em sessão independente.",
         "enabled": true
       },
       {
@@ -147,13 +147,13 @@
       },
       {
         "id": "etapa2-qa-fallback-high",
-        "name": "Revisor substituto — Sol Médio (legado)",
+        "name": "Revisor Sol Alto — risco elevado",
         "provider": "codex",
         "model": "gpt-6.1-sol",
         "modeId": "auto",
-        "thinkingOptionId": "medium",
-        "notes": "Revisão independente: Sonnet Alto; reserva Sol Médio para qualquer implementação; Grok Alto conforme política de cotas.",
-        "enabled": false
+        "thinkingOptionId": "high",
+        "notes": "Esforço definido pelo controlador conforme risco; ticket e broker devem concordar. Revisão em sessão independente.",
+        "enabled": true
       },
       {
         "id": "etapa2-programmer-gemini2",

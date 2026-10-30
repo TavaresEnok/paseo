@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Run workers isolated; authorized manager sessions execute on the host.
 
-This is filesystem/process/resource isolation. Host networking is intentional
-for Paseo's authenticated MCP and the local flow API; it is not a network fence.
+This is filesystem/process/resource isolation. Workers use a dedicated bridge with host/private egress blocked by the staged installer; managers retain approved host access.
 """
 import json
 import os
@@ -45,7 +44,7 @@ def manager_host_cwd(path, root=None):
 def host_manager_session(provider, requested_cwd, agent_id, autonomy, role=None):
     """Claude/Codex manager on the projects tree. Workers never qualify."""
     return bool(autonomy.get('manager_host_access') is True
-                and role not in ('programmer', 'reviewer')
+                and (role == 'manager' if autonomy.get('role_scoped_tools') else role not in ('programmer', 'reviewer'))
                 and provider in ('claude', 'codex')
                 and agent_id
                 and manager_host_cwd(requested_cwd))
@@ -299,7 +298,7 @@ def main():
         '--pull', 'never', '--user', '1000:1000', '--read-only',
         '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--security-opt', 'seccomp=/home/enok/srv_projetos/config/seccomp-default.json',
         '--memory', '2048m' if provider == 'grok' else '1536m', '--memory-swap', '2560m' if provider == 'grok' else '2048m', '--cpus', '1',
-        '--pids-limit', '256', '--network', 'host',
+        '--pids-limit', '256', '--network', autonomy.get('worker_network','paseo-workers'),
         '--label', 'paseo.orchestrator.managed=true',
         '--label', f'paseo.provider={provider}',
         '--label', f'paseo.agent={label_id}',
@@ -316,6 +315,7 @@ def main():
         '--env', f'GOMODCACHE={runtime_home}/.cache/go-mod',
         '--env', f'npm_config_store_dir={runtime_home}/.cache/pnpm-store',
         '--env', 'PASEO_FLOW_URL=http://127.0.0.1:6770',
+        '--env', 'GIT_OPTIONAL_LOCKS=0',
         '--env', 'GIT_CONFIG_COUNT=1', '--env', 'GIT_CONFIG_KEY_0=safe.directory', '--env', 'GIT_CONFIG_VALUE_0=*',
     ]
     # Only provider state and authorized development paths are writable. No
@@ -351,7 +351,7 @@ def main():
             if not allowed(git_dir):
                 raise SystemExit('Git common directory is outside development roots.')
             if git_dir != cwd and cwd not in git_dir.parents:
-                mount(args, git_dir)
+                mount(args, git_dir, readonly=True)
     for skill in SKILLS:
         source = Path('/home/enok/.agents/skills') / skill
         mount(args, source, runtime_home / '.agents/skills' / skill, readonly=True)
@@ -367,6 +367,7 @@ def main():
     for key, value in runtime_env.items():
         args.extend(['--env', f'{key}={value}'])
     for key in ENV_NAMES:
+        if key in {'PASEO_CAPACITY_TOKEN_FILE','PASEO_TRUSTED_CONTROLLER','PASEO_FLOW_DB','PASEO_ADMISSION_DB'}:continue
         if key in os.environ:
             # Pass through by name: never place token-bearing config on argv.
             args.extend(['--env', key])

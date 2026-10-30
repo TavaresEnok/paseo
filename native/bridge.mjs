@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /** Paseo 0.13.2 native SDK bridge. JSON on stdin, JSON on stdout. */
 import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
 import { connectToDaemon } from '/home/enok/.local/share/node24/lib/node_modules/@getpaseo/cli/dist/utils/client.js';
 import { stagedLaunch } from './staged-launch.mjs';
 
@@ -34,6 +36,19 @@ try {
         orchestration: { mcp: config.mcp, providers: Object.fromEntries(Object.entries(config.providers || {}).map(([id,v]) => [id, { enabled: v.enabled, paseoTools: v.paseoTools }])) },
         skills: await client.getAgentSkillsStatus(),
       };
+      break;
+    }
+    case 'message-receipt': {
+      if (!input.agentId || !input.messageId) throw new Error('agentId e messageId obrigatórios');
+      const key=createHash('sha256').update(JSON.stringify(['send',input.agentId,input.messageId])).digest('hex');
+      try {
+        const receipt=JSON.parse(readFileSync(join(home,'agent-requests',key+'.json'),'utf8'));
+        if (receipt.agentId !== input.agentId || !['pending','completed'].includes(receipt.state)) throw new Error('Recibo inválido');
+        result={state:receipt.state};
+      } catch(error) {
+        if (error.code==='ENOENT') result={state:'missing'};
+        else throw error;
+      }
       break;
     }
     case 'usage': result = await client.listUsageReports({ forceRefresh: input.refresh !== false }); break;

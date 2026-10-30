@@ -1,0 +1,14 @@
+[Unit]
+Description=Paseo worker bridge and egress isolation
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/enok/.local/share/paseo-orchestrator/deploy/hardening/prepare-worker-network.py --apply
+RemainAfterExit=yes
+
+[Install]
+WantedBy=docker.service

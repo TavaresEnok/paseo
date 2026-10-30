@@ -160,7 +160,7 @@ def select_for_role(catalog, task, limits, *, now=None, phase="implement", state
 
     evaluate = runtime().evaluate
     role = role_for(task or {}, phase)
-    decision = evaluate(role, catalog, limits, now=now, state=copy.deepcopy(state) if state is not None else None, implementation_model=(task or {}).get("implementation_model"))
+    decision = evaluate(role, catalog, limits, now=now, state=copy.deepcopy(state) if state is not None else None, implementation_model=(task or {}).get("implementation_model"), review_task=task)
     if not isinstance(decision, dict):
         raise RuntimeError("policy evaluate must return a dict")
     reason = decision.get("reason") or "policy"
@@ -168,6 +168,8 @@ def select_for_role(catalog, task, limits, *, now=None, phase="implement", state
         "selected": None, "ranking": [], "rejected": [], "reason": reason,
         "preference_reason": reason, "policy_state": decision.get("state"),
         "gpt_only": bool(decision.get("gpt_only")), "evidence": decision.get("evidence"),
+        "review_context": __import__("orchestrator.task_risk",fromlist=["review_context"]).review_context(task or {}),
+        "review_risk": decision.get("review_risk"),
         "role": role, "preserve_artifact": bool((task or {}).get("preserve_artifact")),
     }
     if decision.get("wait") or not decision.get("model_key"):
@@ -553,6 +555,7 @@ def prepare_native_launch(db, task, job, selection, options):
                 "generation": int(generation),
                 "phase": phase,
                 "implementation_model": _field(task, "model") if role == "reviewer" else None,
+                "review_context": (selection or {}).get("review_context") if role == "reviewer" else None,
                 "adopt_existing": False,
                 "requested_model_key": expected_key,
                 "requested_thinking_option": effort,

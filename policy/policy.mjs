@@ -120,7 +120,7 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
   const adaptiveManager = ticket.role === 'manager' && ticket.provider === 'codex' && ticket.model === 'gpt-6.1-sol' && limits.supervision?.adaptive_effort?.enabled === true && ['medium','high'].includes(ticket.effort) && ['medium','high'].includes(requestedEffort);
   if (requestedEffort && requestedEffort !== ticket.effort && !adaptiveManager) throw new Error('Esforço não confere com o ticket do controlador.');
   if (['programmer', 'reviewer'].includes(ticket.role)) {
-    const holdPath='/home/enok/srv_projetos/orchestration/OPERATOR-HOLD.json';
+    const holdPath=process.env.PASEO_HOLD_FILE || '/home/enok/srv_projetos/orchestration/OPERATOR-HOLD.json';
     if (existsSync(holdPath) && JSON.parse(readFileSync(holdPath,'utf8')).active !== false) throw new Error('Pausa global explícita: não iniciar trabalhador.');
     if (!heldWorkerLease(ticket)) throw new Error('Ticket worker sem lease local held/uncertain vinculada.');
   } else {
@@ -163,7 +163,7 @@ function managerConfig(config = {}) {
   const labels = config.labels || {};
   const role = labels['flow.role'] || config.env?.PASEO_FLOW_ROLE || config.role;
   if ([labels['flow.role'], config.env?.PASEO_FLOW_ROLE, config.role].some(value => ['programmer','reviewer'].includes(value))) return false;
-  const ticket = verifiedAdmission(config.agentId || config.env?.PASEO_AGENT_ID);
+  const ticket = verifiedAdmission(config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID);
   if (ticket && ['programmer', 'reviewer'].includes(ticket.role)) return false;
   if (ticket?.role === 'manager') return true;
   const profile = String(config.profileId || config.agentProfileId || '');
@@ -243,9 +243,18 @@ function assertProviderThinking(provider, value) {
   if (['opencode','grok'].includes(provider) && (value ?? defaultThinking(provider)) !== 'medium')
     throw new Error('OpenCode permite exclusivamente Grok 4.7 com esforço Médio/medium.');
 }
-export function unrestrictedTools() {
-  try { return JSON.parse(readFileSync('/home/enok/srv_projetos/config/autonomy.json','utf8')).unrestricted_tools === true; }
-  catch { return false; }
+function autonomyConfig() {
+  try { return JSON.parse(readFileSync(process.env.PASEO_AUTONOMY_FILE || '/home/enok/srv_projetos/config/autonomy.json','utf8')); }
+  catch { return {}; }
+}
+function roleTicket(config={}) { return verifiedAdmission(config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID); }
+export function unrestrictedTools(config={}) {
+  const autonomy=autonomyConfig();
+  if (!autonomy.role_scoped_tools) return autonomy.unrestricted_tools===true;
+  return autonomy.manager_unrestricted_tools===true && roleTicket(config)?.role==='manager';
+}
+function workerTools(config={}) {
+  return autonomyConfig().worker_unattended_tools===true && ['programmer','reviewer'].includes(roleTicket(config)?.role);
 }
 function unattendedDevelopment(cwd) {
   try {
@@ -286,7 +295,7 @@ export function isDevelopmentPath(path, cwd = ROOTS[0]) {
   });
 }
 function assertCwd(config) {
-  if (!unrestrictedTools() && !config.internal && !isDevelopmentPath(config.cwd))
+  if (!unrestrictedTools(config) && !config.internal && !isDevelopmentPath(config.cwd))
     throw new Error('Agentes executores só podem trabalhar em workspace/worktrees de desenvolvimento aprovadas.');
 }
 
@@ -311,13 +320,13 @@ export function protectConfig(config) {
   readPolicy();
   if (!PROVIDERS.has(config.provider)) throw new Error(`Provedor ${config.provider} sem política validada.`);
   assertCwd(config);
-  const signed = verifiedAdmission(config.agentId || config.env?.PASEO_AGENT_ID);
+  const signed = verifiedAdmission(config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID);
   if (signed?.cwd && canonical(signed.cwd) !== canonical(config.cwd)) throw new Error('Diretório não confere com o ticket.');
   const discovery = config.discovery === true || config.metadataOnly === true || config.purpose === 'model-metadata';
   if (discovery && config.provider === 'grok') {
     assertThinkingAllowed(config.thinkingOptionId);
   } else {
-    const agentId = config.agentId || config.env?.PASEO_AGENT_ID;
+    const agentId = config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID;
     let mark = 'legacy';
     try {
       if (readModelLimits().policy_engine === 'proposed-2026-10-29') mark = assertTurnAdmission(agentId, config.provider, config.model, config.thinkingOptionId);
@@ -326,7 +335,7 @@ export function protectConfig(config) {
     }
     if (!discovery) {
       guardUnticketed(config, mark);
-      assertCurrentOwner(config.agentId || config.env?.PASEO_AGENT_ID, config);
+      assertCurrentOwner(config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID, config);
       admittedThinking(config, mark);
     }
   }
@@ -380,7 +389,7 @@ export function protectConfig(config) {
     permissions.external_directory='deny';
     permissions.webfetch='allow'; permissions.repo_clone='allow'; permissions.doom_loop='deny';
   }
-  if (unrestrictedTools() && !config.internal) {
+  if ((unrestrictedTools(config) || workerTools(config)) && !config.internal) {
     result.featureValues.auto_accept = true;
     if (['codex','codex-programmer'].includes(config.provider)) {
       result.modeId = 'auto';
@@ -475,7 +484,7 @@ print(json.dumps(native_prepare_manager(r['config'],r.get('agentId'),r['config']
 }
 export function resolveNewChat(config = {}) {
   if (!managerCandidate(config) || config.admissionTicket) return config;
-  const ticket = verifiedAdmission(config.agentId || config.env?.PASEO_AGENT_ID);
+  const ticket = verifiedAdmission(config.policyAgentId || config.agentId || config.env?.PASEO_AGENT_ID);
   if (ticket) {
     if (ticket.role !== 'manager') return config;
     // Retried create uses its already admitted UUID/model; it does not spawn a new owner.
@@ -495,8 +504,8 @@ export function readMemoryAvailableMiB() {
   if (!match) throw new Error('MemAvailable indisponível; novas execuções suspensas.');
   return Number(match[1]) / 1024;
 }
-function assertMode(provider, mode) {
-  const allowed = ['codex','codex-programmer'].includes(provider) ? ['auto', 'read-only'] : provider === 'claude' ? ['default', 'acceptEdits', 'plan', ...(unrestrictedTools() ? ['bypassPermissions'] : [])] : ['antigravity','antigravity2','antigravity3'].includes(provider) ? ['full-access'] : provider === 'grok' ? ['default','acceptEdits','bypassPermissions','plan'] : ['build', 'plan'];
+function assertMode(provider, mode, config={}) {
+  const allowed = ['codex','codex-programmer'].includes(provider) ? ['auto', 'read-only', ...(unrestrictedTools(config) ? ['full-access'] : [])] : provider === 'claude' ? ['default', 'acceptEdits', 'plan', ...((unrestrictedTools(config) || workerTools(config)) ? ['bypassPermissions'] : [])] : ['antigravity','antigravity2','antigravity3'].includes(provider) ? ['full-access'] : provider === 'grok' ? ['default','acceptEdits','bypassPermissions','plan'] : ['build', 'plan'];
   if (!allowed.includes(mode)) throw new Error('Modo bypass bloqueado pela política de autonomia em desenvolvimento.');
 }
 
@@ -592,7 +601,7 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
   };
   const mode = prototype.setAgentMode;
   prototype.setAgentMode = function(agentId, modeId) {
-    assertMode(this.requireAgent(agentId).provider, modeId);
+    assertMode(this.requireAgent(agentId).provider, modeId, {...this.requireAgent(agentId).config, policyAgentId:agentId});
     return mode.call(this, agentId, modeId);
   };
   const setModel = prototype.setAgentModel;
@@ -621,7 +630,7 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
   };
   const feature = prototype.setAgentFeature;
   prototype.setAgentFeature = function(agentId, featureId, value) {
-    if (!unrestrictedTools() && featureId === 'auto_accept' && value) throw new Error('Aprovação automática irrestrita bloqueada.');
+    if (!(unrestrictedTools({...this.requireAgent(agentId).config, policyAgentId:agentId}) || workerTools({...this.requireAgent(agentId).config, policyAgentId:agentId})) && featureId === 'auto_accept' && value) throw new Error('Aprovação automática irrestrita bloqueada.');
     if (['ultra','ultracode','xhigh'].includes(featureId) && value) throw new Error('Esforço acima de Alto proibido.');
     return feature.call(this, agentId, featureId, value);
   };
@@ -629,7 +638,7 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
   prototype.respondToPermission = function(agentId, requestId, response) {
     readPolicy();
     const onceActions = new Set(['allow_once', 'once', 'accept', 'allow', 'approve', 'implement', 'implement_resume']);
-    if (!unrestrictedTools() && response.behavior === 'allow' && (response.updatedPermissions?.length ||
+    if (!unrestrictedTools({...this.requireAgent(agentId).config, policyAgentId:agentId}) && response.behavior === 'allow' && (response.updatedPermissions?.length ||
       (response.selectedActionId && !onceActions.has(response.selectedActionId))))
       throw new Error('Operação protegida: use aprovação pontual, não autorização permanente.');
     audit('permission_response', { agentId, requestId, behavior: response.behavior });
@@ -641,14 +650,16 @@ export function installManagerPolicy(AgentManager, dependencies = {}) {
 
 export function installSessionPolicy(session, registeredConfig = {}, registeredAgentId, manager) {
   if (session[SESSION_GUARDED]) return;
+  if (session.config) session.config.policyAgentId=registeredAgentId;
+  registeredConfig.policyAgentId=registeredAgentId;
   if (session.setMode) {
     const mode = session.setMode.bind(session);
-    session.setMode = modeId => { assertMode(session.provider, modeId); return mode(modeId); };
+    session.setMode = modeId => { assertMode(session.provider, modeId, session.config || registeredConfig); return mode(modeId); };
   }
   if (session.setFeature) {
     const feature = session.setFeature.bind(session);
     session.setFeature = (featureId, value) => {
-      if (!unrestrictedTools() && featureId === 'auto_accept' && value) throw new Error('Aprovação automática irrestrita bloqueada.');
+      if (!(unrestrictedTools(session.config || registeredConfig) || workerTools(session.config || registeredConfig)) && featureId === 'auto_accept' && value) throw new Error('Aprovação automática irrestrita bloqueada.');
       if (['ultra','ultracode','xhigh'].includes(featureId) && value) throw new Error('Esforço acima de Alto proibido.');
       return feature(featureId, value);
     };
@@ -757,8 +768,12 @@ export function classifyCommand(command, cwd) {
 }
 export async function approvalHook(input, sessionConfig = {}) {
   readPolicy();
-  if (unrestrictedTools() && !sessionConfig.internal) return decision('allow','Autorização explícita do usuário para ferramentas sem bloqueios; política de modelos preservada.');
+  if (unrestrictedTools(sessionConfig) && !sessionConfig.internal) return decision('allow','Autorização explícita do usuário para ferramentas sem bloqueios; política de modelos preservada.');
   const cwd = input.cwd ?? sessionConfig.cwd;
+  if (workerTools(sessionConfig)) {
+    if (isDevelopmentPath(cwd) && canonical(cwd)===canonical(sessionConfig.cwd)) return decision('allow','Trabalhador autorizado dentro da worktree isolada; proteção de host/rede aplicada pelo runtime.');
+    return decision('deny','Trabalhador fora da worktree admitida. Encaminhe a necessidade administrativa ao gerente.');
+  }
   const tool = input.tool_name;
   const toolInput = input.tool_input ?? {};
   if (!sessionConfig.internal && unattendedDevelopment(cwd)) {
@@ -792,12 +807,12 @@ export function installClaudePolicy(ClaudeAgentSession) {
   ClaudeAgentSession.prototype.buildOptions = async function(...args) {
     const options = await build.apply(this, args);
     applyCurrentPolicy(options);
-    if (unrestrictedTools() && !this.config?.internal) {
+    if ((unrestrictedTools(this.config) || workerTools(this.config)) && !this.config?.internal) {
       options.permissionMode = 'bypassPermissions';
       options.allowDangerouslySkipPermissions = true;
     }
-    if (!['default', 'acceptEdits', 'plan', ...(unrestrictedTools() ? ['bypassPermissions'] : [])].includes(options.permissionMode)) throw new Error('Modo Claude bypass bloqueado.');
-    if (!unrestrictedTools()) options.allowDangerouslySkipPermissions = false;
+    if (!['default', 'acceptEdits', 'plan', ...((unrestrictedTools(this.config) || workerTools(this.config)) ? ['bypassPermissions'] : [])].includes(options.permissionMode)) throw new Error('Modo Claude bypass bloqueado.');
+    if (!(unrestrictedTools(this.config) || workerTools(this.config))) options.allowDangerouslySkipPermissions = false;
     const hook = input => approvalHook(input, this.config ?? {});
     options.hooks = { ...options.hooks, PreToolUse: [...(options.hooks?.PreToolUse ?? []), { hooks: [hook] }] };
     return options;

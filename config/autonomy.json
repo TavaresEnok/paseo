@@ -10,6 +10,11 @@
   "unattended_development": true,
   "hide_worker_workspaces": true,
   "archive_completed_workspaces": true,
-  "unrestricted_tools": true,
-  "manager_host_access": true
+  "unrestricted_tools": false,
+  "manager_host_access": true,
+  "role_scoped_tools": true,
+  "manager_unrestricted_tools": true,
+  "worker_unattended_tools": true,
+  "worker_network": "paseo-workers",
+  "worker_network_isolation": true
 }

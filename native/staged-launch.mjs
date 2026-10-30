@@ -8,7 +8,10 @@ export function messageIdFor(requestId) {
 }
 
 function timelineHas(timeline, messageId) {
-  return JSON.stringify(timeline ?? {}).includes(messageId);
+  return (timeline?.entries || []).some(entry => {
+    const item=entry.item || {};
+    return item.type==='user_message' && (item.clientMessageId || item.messageId)===messageId && Boolean(entry.providerMessageId || item.providerMessageId);
+  });
 }
 
 export async function stagedLaunch(client, options) {

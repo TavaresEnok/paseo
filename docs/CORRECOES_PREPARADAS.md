@@ -1,0 +1,34 @@
+# Correções preparadas, sem implantação
+
+Base: `0bf8b5c`. Branch: `staged/audit-hardening-20261030`.
+
+Nenhum serviço, configuração, plano ou banco do principal/NexoISP foi alterado por esta preparação. O trabalho foi feito em outra worktree. A publicação desta branch autoriza revisão e CI em runners efêmeros, não aplicação nem retomada de planos.
+
+## Comportamento preparado
+
+- **Revisão substituta Sol:** Médio em tarefas comuns; Alto para criticidade elevada, complexidade, autenticação, permissões, segurança, pagamentos, concorrência/fencing, migrations, alterações destrutivas e reprovações anteriores. Examina contrato e nomes de arquivos realmente alterados. O broker recebe o mesmo contexto e assina o esforço exato. Sonnet principal permanece Alto; sessões continuam independentes.
+- **Gerência:** complementa palavras do pedido com risco estruturado, inclusive tarefas em andamento/na fila. Uma sessão Sol alterna esforço; nada acima de Alto.
+- **Contingência:** preserva a cadeia Grok → Terra dedicado → Gemini 3 → Terra original temporário. Contratos integrados verificam o limite compartilhado e a recuperação de um regular enquanto a reserva ainda trabalha.
+- **Notificações:** UUID persistente, backoff e consulta ao recibo receptor. Resposta perdida após recibo completed é reconciliada sem outro envio. Recibo pending sem prova de aceitação vira `needs_attention`, com evento único e verificações espaçadas; não é contornado criando outro UUID. Mensagens antigas/planos pausados são descartados antes da entrega. O estado da tarefa permanece preservado.
+- **Recuperações:** orçamento por tarefa de oito falhas automáticas reais ou quatro horas de execução com falha; três falhas equivalentes sem mudança do código interrompem a repetição daquela tarefa. Cota/transporte/slots não consomem esse orçamento. Demais tarefas continuam. Extensão explícita do operador é auditada, sem apagar histórico. Não há estimativa de cobrança monetária a partir desses limites.
+- **Autonomia:** root/sudo automático somente para gerente admitido; ferramentas do trabalhador autorizadas dentro da worktree/container. Trabalhadores sem rede do host, credenciais administrativas ou escrita em metadados Git compartilhados. Credenciais da própria assinatura continuam necessárias ao CLI e não são credenciais administrativas do host.
+- **Rede:** bridge dedicada `paseo-workers`, comunicação entre containers desativada, IPv6 desligado, bloqueio de host e destinos privados/metadata, saída pública para os provedores. Provisionamento usa a mesma bridge; verificações comuns continuam offline. O instalador de rede imprime o plano por padrão e só executa com `--apply` como root. Requer Docker no backend iptables; divergência é erro de pré-requisito, não queda silenciosa para host networking.
+- **CI:** contratos Python/Node e teste real de rede Docker em runner efêmero. Não depende de logins, modelos, Docker do NexoISP ou bancos de produção.
+
+## Evidência e limites
+
+Os contratos locais usam broker HTTP real em loopback, SQLite temporário, seleção do controlador, ticket HMAC e gate JavaScript nativo. O provedor de IA é simulado. Testes do receptor carregam o código distribuído real de MessageReceipts e cobrem concorrência, reinício do receptor e resposta perdida. Isso valida contratos de integração, não latência/cota/respostas dos provedores externos.
+
+O smoke de firewall é exclusivo de runner GitHub efêmero. Não foi executado no servidor dos projetos. Falhas com resultado efetivamente desconhecido não admitem garantia de exactly-once do provedor: quando não há prova, o código preserva a incerteza e exige reconciliação, sem iniciar uma segunda inferência arbitrária.
+
+A classificação de risco continua determinística: nomes e critérios não são prova de segurança. Os testes essenciais, a revisão independente e a possibilidade de ler o contexto completo continuam obrigatórios.
+
+## Aplicação posterior
+
+1. Revisar o diff e os resultados de CI desta branch. Conferir que a instalação ainda corresponde aos hashes da base; se houver mudanças posteriores, portar o patch sem sobrescrevê-las.
+2. Preservar configuração autenticada, permissões, bancos e backups do daemon/controlador. **Não copiar a configuração sanitizada inteira do Git para produção.** Aplicar apenas os overlays de política e as alterações revisadas; preservar autorização, logins, identificadores e segredos existentes.
+3. Aguardar uma fronteira sem trabalhadores ativos para mudar o runtime do daemon. Preparar bridge/firewall primeiro e verificar o isolamento em ambiente descartável. Configurar reaplicação da política após boot/restart do Docker; o arquivo systemd preparado documenta essa dependência.
+4. Aplicar os mesmos módulos de risco/política no controlador e no broker compartilhado. Instalar novos helpers, patch de bridge e política nativa. Mesclar flags de autonomia por papel e de revisão/budget. Não recriar executores, apagar recibos ou retomar planos pausados.
+5. Recarregar somente os componentes necessários e confirmar o primeiro lançamento legítimo de revisão Médio/Alto e a continuidade da fila. Em caso de divergência de admissão, restaurar código/configuração do backup; preservar worktrees, commits e bancos.
+
+Esta é uma preparação. Não há timer, hook, script remoto ou ação automática de implantação associado à branch.

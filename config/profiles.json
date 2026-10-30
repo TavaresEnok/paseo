@@ -138,11 +138,11 @@
       "provider": "codex",
       "default_model": "gpt-6.1-sol",
       "thinking_option": "medium",
-      "name": "Revisor substituto — Sol Médio",
+      "name": "Revisor substituto — Sol Médio (tarefas normais)",
       "mode": "auto",
       "native_profile_id": "etapa2-qa-fallback",
       "subscription": "Assinatura ChatGPT",
-      "role": "Revisão independente de qualquer programador; esforço Médio",
+      "role": "Revisão independente adaptativa conforme criticidade, arquivos alterados, complexidade e reprovações",
       "command": [
         "codex",
         "--model",
@@ -203,18 +203,18 @@
     "qa-fallback-high": {
       "provider": "codex",
       "default_model": "gpt-6.1-sol",
-      "thinking_option": "medium",
-      "name": "Revisor substituto — Sol Médio",
+      "thinking_option": "high",
+      "name": "Revisor substituto — Sol Alto (risco elevado)",
       "mode": "auto",
       "native_profile_id": "etapa2-qa-fallback-high",
       "subscription": "Assinatura ChatGPT",
-      "role": "Revisão independente de qualquer programador; esforço Médio",
+      "role": "Revisão independente adaptativa conforme criticidade, arquivos alterados, complexidade e reprovações",
       "command": [
         "codex",
         "--model",
         "gpt-6.1-sol"
       ],
-      "enabled": false,
+      "enabled": true,
       "notes": "Política atual em model-limits.json; revisão independente"
     },
     "programador-terra": {
