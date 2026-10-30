@@ -12,7 +12,7 @@ def allowed_model(provider,model,limits=None):
     limits=limits or load_limits()
     if not isinstance(model,str):return False
     if any(fragment.lower() in model.lower() for fragment in limits['forbidden_model_fragments']):return False
-    if provider=='codex-programmer':return bool(limits.get('programmer_account',{}).get('enabled')) and model=='gpt-6.1-terra'
+    if provider=='codex-programmer':return bool(limits.get('programmer_account',{}).get('enabled')) and model in {'gpt-6.1-terra',limits.get('programmer_account',{}).get('model','gpt-6.1-terra')}
     if provider in {'antigravity','antigravity2','antigravity3'}:
         from .policy_runtime import enabled_gemini
         return provider in enabled_gemini(limits) and (model in limits.get('gemini',{}).get('allowed_models',[]) or (provider=='antigravity2' and model=='claude-sonnet-5-5-medium' and (limits.get('antigravity_sonnet') or {}).get('enabled')))
@@ -76,17 +76,19 @@ def role_summary(limits=None):
     if (limits.get('antigravity_sonnet') or {}).get('enabled'):chain.append(('antigravity2/claude-sonnet-5-5-medium','medium'))
     emergency=program.get('emergency_original_account') or {}
     if emergency.get('enabled'):chain.append((emergency.get('model'),emergency.get('thinking_option')))
+    reserve_effort='Alto' if emergency.get('thinking_option')=='high' else 'Médio'
+    dedicated_label='Sol Médio' if (limits.get('programmer_account') or {}).get('model')=='gpt-6.1-sol' else 'Terra '+('Alto' if (limits.get('programmer_account') or {}).get('thinking')=='high' else 'Médio')
     route=' -> '.join(f'{model} ({effort})' for model,effort in chain if model)
     return '\n'.join([
         'POLÍTICA ATUAL GERADA DE model-limits.json. Substitui regras históricas de modelos, esforços e contas.',
         f"Gerente único por chat: {sup.get('primary_model')} ({sup.get('primary_thinking')}); reserva {sup.get('fallback_model')} ({sup.get('fallback_thinking')}).",
         ('Gerência adaptativa: Sol Médio no acompanhamento/distribuição; Alto em planejamento complexo, conflito de integração ou bloqueio técnico repetido. O controlador escolhe por turno e registra motivo; uma única sessão.' if (sup.get('adaptive_effort') or {}).get('enabled') else ''),
         'Revisor recebe contexto compacto, critérios e diff; evidência completa deve ser consultada quando o resumo for insuficiente. Notificações ordinárias próximas são agrupadas por chat; bloqueios são imediatos.',
-        f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra Médio só assume após esgotamento de todos os programadores regulares; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
-        'Codex programador usa conta isolada exclusivamente para programação; a conta original de gerência/revisão só pode programar na exceção emergencial Terra Médio expressamente habilitada. Somente Gemini conta 3 (antigravity2) habilitado.',
+        f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra {reserve_effort} só assume após esgotamento de todos os programadores regulares; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
+        f'Codex programador usa conta isolada exclusivamente para programação: {dedicated_label}. A conta original de gerência/revisão só pode programar na exceção emergencial Terra {reserve_effort} expressamente habilitada. Somente conta 3 (antigravity2) habilitada.',
         f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} (Médio em tarefas normais; Alto conforme risco e criticidade quando revisão adaptativa estiver habilitada) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
-        'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Terra dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
-        'Astra somente gerente temporário Médio quando Claude, Grok, a conta Terra dedicada (quando habilitada) e todos os modelos Antigravity habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
+        'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Codex dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
+        'Astra somente gerente temporário Médio quando Claude, Grok, a conta Codex dedicada (quando habilitada) e todos os modelos Antigravity habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
         'O gerente planeja, divide escopos independentes, delega, acompanha revisões e continua o backlog autorizado; não implementa. Retorno ao modelo primário somente em fronteira segura, sem interromper trabalhador saudável.',
         ('Orçamento de recuperação: detectar falhas repetidas sem progresso; não repetir recover quando orçamento esgotar. Preservar a tarefa e avisar o usuário; outras tarefas continuam. Extensão somente por operação humana explícita.' if (limits.get('recovery_budget') or {}).get('enabled') else ''),
         'Gerente mantém root/sudo autorizado. Trabalhadores executam somente na worktree isolada e encaminham necessidades administrativas ao gerente.',

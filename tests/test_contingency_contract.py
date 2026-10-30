@@ -22,7 +22,7 @@ class ContingencyContract(unittest.TestCase):
   self.addCleanup(self.server.server_close);self.addCleanup(self.server.shutdown)
   self.client=Client({'url':f'http://127.0.0.1:{self.server.server_port}','host_id':'host-a','account_id':'fixture','token_file':str(self.root/'token')})
  def catalog(self,recovered=None):
-  pairs={'codex':'gpt-6.1-terra','codex-programmer':'gpt-6.1-terra','claude':'claude-sonnet-5-5','grok':'grok-4.7','antigravity2':'gemini-3.8-flash-high'}
+  pairs={'codex':'gpt-6.1-terra','codex-programmer':self.limits['programmer_account']['model'],'claude':'claude-sonnet-5-5','grok':'grok-4.7','antigravity2':'gemini-3.8-flash-high'}
   models=[]
   for p,m in pairs.items():
    available=p in {'codex',recovered}
@@ -32,14 +32,26 @@ class ContingencyContract(unittest.TestCase):
   return {'models':models}
  def grant(self,chat,task,expected='codex/gpt-6.1-terra'):
   self.client.register(chat,[{'task_id':task,'role':'programmer','request_id':task,'generation':1,'phase':'implement'}])
-  return self.client.acquire(chat,task,'programmer',task,{'generation':1,'requested_model_key':expected,'requested_thinking_option':self.limits['programmer_account']['thinking'] if expected.startswith('codex-programmer/') else 'medium' if 'gemini' not in expected else 'high'})
- def test_dedicated_account_uses_configured_high(self):
+  return self.client.acquire(chat,task,'programmer',task,{'generation':1,'requested_model_key':expected,'requested_thinking_option':self.limits['programmer_account']['thinking'] if expected.startswith('codex-programmer/') else self.limits['programming']['emergency_original_account']['thinking_option'] if expected=='codex/gpt-6.1-terra' else 'medium' if 'gemini' not in expected else 'high'})
+ def test_dedicated_account_uses_configured_sol_medium(self):
   catalog=self.catalog('codex-programmer');self.client.observe(catalog,self.limits)
   with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):
    selected=select_for_role(catalog,{'specialty':'coding'},self.limits)['selected']
-  self.assertEqual(selected['thinking_option_id'],'high')
-  grant=self.grant('terra-high-chat','terra-high-task','codex-programmer/gpt-6.1-terra')
-  self.assertTrue(grant['granted'],grant);self.assertEqual(grant['thinking_option'],'high')
+  self.assertEqual(selected['thinking_option_id'],'medium')
+  grant=self.grant('sol-medium-chat','sol-medium-task','codex-programmer/gpt-6.1-sol')
+  self.assertTrue(grant['granted'],grant);self.assertEqual(grant['thinking_option'],'medium')
+  agent=str(uuid.uuid4());self.client.bind(grant['lease_id'],agent)
+  cwd=self.root/'sol-work';cwd.mkdir()
+  ticket=sign_ticket({'role':'programmer','provider':'codex-programmer','model':'gpt-6.1-sol','effort':'medium','agent_id':agent,'chat_id':'sol-medium-chat','request_id':'sol-medium-task','cwd':str(cwd),'decision_fp':'test'},self.token)
+  admission=self.root/'sol-admission.sqlite3';db=sqlite3.connect(admission);db.execute('CREATE TABLE tickets(agent_id TEXT,ticket_json TEXT)');db.execute('INSERT INTO tickets VALUES(?,?)',(agent,json.dumps(ticket)));db.commit();db.close()
+  flow=self.root/'sol-flow.sqlite3';db=sqlite3.connect(flow);db.execute('CREATE TABLE capacity_leases(agent_id TEXT,request_id TEXT,role TEXT,chat_id TEXT,status TEXT)');db.execute('INSERT INTO capacity_leases VALUES(?,?,?,?,?)',(agent,'sol-medium-task','programmer','sol-medium-chat','held'));db.commit();db.close()
+  (self.root/'sol-limits.json').write_text(json.dumps(self.limits))
+  env={**os.environ,'PASEO_MODEL_LIMITS':str(self.root/'sol-limits.json'),'PASEO_ADMISSION_DB':str(admission),'PASEO_FLOW_DB':str(flow),'PASEO_CAPACITY_TOKEN_FILE':str(self.root/'token'),'PASEO_POLICY_FILE':str(ROOT/'config/profiles.json'),'PASEO_AUTONOMY_FILE':str(ROOT/'config/autonomy.json'),'PASEO_POLICY_ROOTS':str(cwd),'PASEO_HOLD_FILE':str(self.root/'nonexistent-hold'),'PASEO_AGENT_ID':agent}
+  script="import {assertTurnAdmission} from './policy/policy.mjs';import assert from 'node:assert/strict';assert.equal(assertTurnAdmission(process.env.PASEO_AGENT_ID,'codex-programmer','gpt-6.1-sol','medium'),'admitted');assert.throws(()=>assertTurnAdmission(process.env.PASEO_AGENT_ID,'codex-programmer','gpt-6.1-sol','high'));"
+  subprocess.run(['node','--input-type=module','-e',script],env=env,cwd=ROOT,check=True,capture_output=True,text=True)
+  import importlib.util
+  spec=importlib.util.spec_from_file_location('isolated_sol',ROOT/'native/isolated-provider.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+  self.assertEqual(m.assert_cli_admission('codex-programmer',['app-server'],env),'programmer')
  def test_original_shared_cap_and_native_admission(self):
   catalog=self.catalog();self.client.observe(catalog,self.limits)
   with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):
@@ -52,12 +64,12 @@ class ContingencyContract(unittest.TestCase):
   denied=self.grant('third-chat','fifth');self.assertFalse(denied['granted']);self.assertEqual(denied['reason'],'account_programmer_cap')
   agent=str(uuid.uuid4());self.client.bind(grants[0]['lease_id'],agent)
   cwd=self.root/'worktree';cwd.mkdir()
-  ticket=sign_ticket({'role':'programmer','provider':'codex','model':'gpt-6.1-terra','effort':'medium','agent_id':agent,'chat_id':'chat-0','request_id':'task-0','cwd':str(cwd),'decision_fp':'test'},self.token)
-  self.assertTrue(verify_ticket(ticket,self.token));self.assertFalse(verify_ticket({**ticket,'effort':'high'},self.token))
+  ticket=sign_ticket({'role':'programmer','provider':'codex','model':'gpt-6.1-terra','effort':selected['thinking_option_id'],'agent_id':agent,'chat_id':'chat-0','request_id':'task-0','cwd':str(cwd),'decision_fp':'test'},self.token)
+  self.assertTrue(verify_ticket(ticket,self.token));self.assertFalse(verify_ticket({**ticket,'effort':'medium' if ticket['effort']=='high' else 'high'},self.token))
   admission=self.root/'admission.sqlite3';db=sqlite3.connect(admission);db.execute('CREATE TABLE tickets(agent_id TEXT,ticket_json TEXT)');db.execute('INSERT INTO tickets VALUES(?,?)',(agent,json.dumps(ticket)))
   manager=sign_ticket({**ticket,'role':'manager','agent_id':'manager-fixture','model':'gpt-6.1-sol'},self.token);db.execute('INSERT INTO tickets VALUES(?,?)',('manager-fixture',json.dumps(manager)));db.commit();db.close()
   flow=self.root/'flow.sqlite3';db=sqlite3.connect(flow);db.execute('CREATE TABLE capacity_leases(agent_id TEXT,request_id TEXT,role TEXT,chat_id TEXT,status TEXT)');db.execute('INSERT INTO capacity_leases VALUES(?,?,?,?,?)',(agent,'task-0','programmer','chat-0','held'));db.commit();db.close()
-  paths={'agent':agent,'cwd':str(cwd)};(self.root/'fixture.json').write_text(json.dumps(paths));(self.root/'limits.json').write_text(json.dumps(self.limits))
+  paths={'agent':agent,'cwd':str(cwd),'effort':ticket['effort']};(self.root/'fixture.json').write_text(json.dumps(paths));(self.root/'limits.json').write_text(json.dumps(self.limits))
   env={**os.environ,'PASEO_MODEL_LIMITS':str(self.root/'limits.json'),'PASEO_ADMISSION_DB':str(admission),'PASEO_FLOW_DB':str(flow),'PASEO_CAPACITY_TOKEN_FILE':str(self.root/'token'),'PASEO_POLICY_FILE':str(ROOT/'config/profiles.json'),'PASEO_AUTONOMY_FILE':str(ROOT/'config/autonomy.json'),'PASEO_POLICY_ROOTS':str(cwd),'PASEO_HOLD_FILE':str(self.root/'nonexistent-hold')}
   subprocess.run(['node',str(ROOT/'tests/node/admission-contract.mjs'),str(self.root/'fixture.json')],env=env,check=True,capture_output=True,text=True)
   # An unconfirmed end must not free a still-running worker's capacity.
@@ -90,7 +102,7 @@ class ContingencyContract(unittest.TestCase):
   self.client.observe(self.catalog(),self.limits);g=self.grant('chat','emergency');self.assertTrue(g['granted'],g)
   self.client.bind(g['lease_id'],'running-emergency-agent')
   self.client.observe(self.catalog('codex-programmer'),self.limits)
-  new=self.grant('chat','next','codex-programmer/gpt-6.1-terra');self.assertTrue(new['granted'],new)
+  new=self.grant('chat','next','codex-programmer/'+self.limits['programmer_account']['model']);self.assertTrue(new['granted'],new)
   with sqlite3.connect(self.root/'broker.sqlite3') as db:
    row=db.execute('SELECT state,bound_agent_id FROM leases WHERE lease_id=?',(g['lease_id'],)).fetchone()
    self.assertEqual(row,('held','running-emergency-agent'))

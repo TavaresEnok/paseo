@@ -57,11 +57,12 @@ def capture():
  usage={}
  for account in ['codex-programmer','codex']:
   usage[account]=read_usage(BASE/'runtime/isolated'/account/'home')
- policy=json.loads((BASE/'config/model-limits.json').read_text()).get('programmer_account',{})
+ limits=json.loads((BASE/'config/model-limits.json').read_text());policy=limits.get('programmer_account',{})
+ emergency=(limits.get('programming') or {}).get('emergency_original_account',{})
  try:
   observed=json.loads((BASE/'orchestration/evidence/codex-programmer-usage.json').read_text());quota=observed.get('quota',{})
  except (OSError,ValueError):quota={'status':'unknown'}
- return {'programmer_quota_snapshot':quota,'programmer_policy':{k:policy.get(k) for k in ['provider','model','thinking']},'at':time.time(),'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'event_seq':max_seq,'quality':dict(totals),'usage':usage,'notes':['Cumulative snapshots: subtract matching counters between phases.','Compare similar task complexity; inherited tasks and transport/auth/quota waits are not model-quality failures.','Cached input is included in input_tokens; reasoning_output_tokens is a subset of output_tokens.','Reviewer/manager original-account usage is grouped separately; no claim of quota savings from token counts.']}
+ return {'emergency_programmer_policy':{k:emergency.get(k) for k in ['enabled','model','thinking_option']},'programmer_quota_snapshot':quota,'programmer_policy':{k:policy.get(k) for k in ['provider','model','thinking']},'at':time.time(),'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'event_seq':max_seq,'quality':dict(totals),'usage':usage,'notes':['Cumulative snapshots: subtract matching counters between phases.','Compare similar task complexity; inherited tasks and transport/auth/quota waits are not model-quality failures.','Cached input is included in input_tokens; reasoning_output_tokens is a subset of output_tokens.','Reviewer/manager original-account usage is grouped separately; no claim of quota savings from token counts.']}
 
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('label');parser.add_argument('--output-dir',type=Path,default=BASE/'orchestration/evidence/worker-comparison');args=parser.parse_args()

@@ -23,7 +23,7 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -32,7 +32,7 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -41,7 +41,7 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -61,7 +61,7 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -83,7 +83,7 @@
         "modeId": "full-access",
         "thinkingOptionId": "high",
         "featureValues": {},
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -93,7 +93,7 @@
         "model": "gpt-6-luna",
         "modeId": "auto",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -103,7 +103,7 @@
         "model": "gpt-5.6-terra",
         "modeId": "auto",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -112,7 +112,7 @@
         "provider": "grok",
         "model": "grok-4.7",
         "thinkingOptionId": "medium",
-        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Terra Alto conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
+        "notes": "Use somente no papel admitido pelo controlador. Programação: Grok Médio -> Sol Médio conta exclusiva -> Gemini conta 3 Alto. Nunca esforço acima de Alto.",
         "enabled": true
       },
       {
@@ -166,13 +166,13 @@
       },
       {
         "id": "etapa2-programmer-terra",
-        "name": "Programação — GPT-6.1 Terra Alto (conta exclusiva)",
+        "name": "Programação — GPT-6.1 Sol Médio (conta exclusiva)",
         "provider": "codex-programmer",
-        "model": "gpt-6.1-terra",
+        "model": "gpt-6.1-sol",
         "modeId": "auto",
-        "thinkingOptionId": "high",
+        "thinkingOptionId": "medium",
         "featureValues": {},
-        "notes": "Conta exclusiva de programação; Terra Alto, após Grok Médio e antes de Gemini conta 3 Alto. Exige ticket do controlador; não gerencia nem revisa.",
+        "notes": "Conta exclusiva de programação; Sol Médio, após Grok Médio e antes de Gemini conta 3 Alto. Exige ticket do controlador; não gerencia nem revisa.",
         "enabled": true
       }
     ],
@@ -351,8 +351,18 @@
         },
         "models": [
           {
+            "id": "gpt-6.1-sol",
+            "label": "GPT-6.1 Sol Médio — programação",
+            "thinkingOptions": [
+              {
+                "id": "medium",
+                "label": "Médio"
+              }
+            ]
+          },
+          {
             "id": "gpt-6.1-terra",
-            "label": "GPT-6.1 Terra Alto — programação",
+            "label": "GPT-6.1 Terra — sessões anteriores",
             "thinkingOptions": [
               {
                 "id": "high",

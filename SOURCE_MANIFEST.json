@@ -5,8 +5,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/policy_integration.py",
       "path": "orchestrator/policy_integration.py",
-      "source_sha256": "645d38a08bf76858842a3503938fcbb5dc5eaac25a3f1f091dd63cf2dd528177",
-      "export_sha256": "bf400fc80d8bbbaa425e41c3abcea7e7fc6d8f362f817ab8543c6637c0a73687",
+      "source_sha256": "50425cc1d896c4606900e4cf1cb08edabf520bb97556dedd38204283290354f3",
+      "export_sha256": "645fd30a77e76e48fc07ad4029f4a0e185047e40824cdab25772b28d0e2df9d8",
       "sanitized": true
     },
     {
@@ -40,8 +40,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/catalog.py",
       "path": "orchestrator/catalog.py",
-      "source_sha256": "bc2be141f9163e13673cae66a665621050f7fa734011e2ca4ebfc9ddb4d31363",
-      "export_sha256": "bc2be141f9163e13673cae66a665621050f7fa734011e2ca4ebfc9ddb4d31363",
+      "source_sha256": "fbc4dd3ab4a8e868a02ab67b2f5e6de576fb9765bbc6c3e3b94eb8c6ed7bac93",
+      "export_sha256": "fbc4dd3ab4a8e868a02ab67b2f5e6de576fb9765bbc6c3e3b94eb8c6ed7bac93",
       "sanitized": false
     },
     {
@@ -96,8 +96,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/codex_programmer_usage.py",
       "path": "orchestrator/codex_programmer_usage.py",
-      "source_sha256": "f5b93ba1c2ffcdc107a45426a4f41755605ce0ee12b5e8a7e829e34c6ed10c38",
-      "export_sha256": "f5b93ba1c2ffcdc107a45426a4f41755605ce0ee12b5e8a7e829e34c6ed10c38",
+      "source_sha256": "81e2b5cc0cda6cda3081ebdfbbbb7014c6d15b098b86d95c511fd65250f86d05",
+      "export_sha256": "81e2b5cc0cda6cda3081ebdfbbbb7014c6d15b098b86d95c511fd65250f86d05",
       "sanitized": false
     },
     {
@@ -194,8 +194,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/policy_runtime.py",
       "path": "orchestrator/policy_runtime.py",
-      "source_sha256": "8113543c5a294b23b40bea349323a582dcfa9a40917f6bcb28f5174360e25085",
-      "export_sha256": "8113543c5a294b23b40bea349323a582dcfa9a40917f6bcb28f5174360e25085",
+      "source_sha256": "a650a45adbb5840dc49efea674d0a769fd5a67ec3bd18c72b1d98b78a8d13eb5",
+      "export_sha256": "a650a45adbb5840dc49efea674d0a769fd5a67ec3bd18c72b1d98b78a8d13eb5",
       "sanitized": false
     },
     {
@@ -208,8 +208,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/model_limits.py",
       "path": "orchestrator/model_limits.py",
-      "source_sha256": "c6047327be39ba50a3c22d9c26f49a26433bcb5cb5cb2a51c603f2e523399de6",
-      "export_sha256": "c6047327be39ba50a3c22d9c26f49a26433bcb5cb5cb2a51c603f2e523399de6",
+      "source_sha256": "b52301ea089aa5a5641afa5b7b7079d05139202a2cf72b216f5cfbda922ac727",
+      "export_sha256": "b52301ea089aa5a5641afa5b7b7079d05139202a2cf72b216f5cfbda922ac727",
       "sanitized": false
     },
     {
@@ -236,8 +236,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/native/isolated-provider.py",
       "path": "native/isolated-provider.py",
-      "source_sha256": "352e1ed3fae8135ddf663f6bb64d9cc1d37b739b4412b9995706166599557835",
-      "export_sha256": "352e1ed3fae8135ddf663f6bb64d9cc1d37b739b4412b9995706166599557835",
+      "source_sha256": "312a9b6c8c9c7ab9563920297691bf570769acdfbaaa267d5facd4e40cf52c25",
+      "export_sha256": "312a9b6c8c9c7ab9563920297691bf570769acdfbaaa267d5facd4e40cf52c25",
       "sanitized": false
     },
     {
@@ -446,8 +446,8 @@
     {
       "source": "/home/enok/.local/share/paseo-policy/policy.mjs",
       "path": "policy/policy.mjs",
-      "source_sha256": "465afff2855d50b92d8198088c3c10cff8a9c14c6293672e35eff732c4eec422",
-      "export_sha256": "465afff2855d50b92d8198088c3c10cff8a9c14c6293672e35eff732c4eec422",
+      "source_sha256": "4d77c71a8f9c449ce933cc126b5e914c3f1b88465ecf88d40eb524bb8c3be1ae",
+      "export_sha256": "4d77c71a8f9c449ce933cc126b5e914c3f1b88465ecf88d40eb524bb8c3be1ae",
       "sanitized": false
     },
     {
@@ -650,8 +650,8 @@
     {
       "source": "/home/enok/srv_projetos/config/manager-instructions.txt",
       "path": "config/manager-instructions.txt",
-      "source_sha256": "04a8b72af5e9d849a641f1e5adc2c535e6b5dc0a40a56df4543c71926f85d663",
-      "export_sha256": "04a8b72af5e9d849a641f1e5adc2c535e6b5dc0a40a56df4543c71926f85d663",
+      "source_sha256": "affdced5ce6f5ba925f8ab27205357494eea84a10c8a4dedb029c815c6e92581",
+      "export_sha256": "affdced5ce6f5ba925f8ab27205357494eea84a10c8a4dedb029c815c6e92581",
       "sanitized": false
     },
     {
@@ -10871,8 +10871,8 @@
     {
       "source": "/home/enok/srv_projetos/config/model-limits.json",
       "path": "config/model-limits.json",
-      "source_sha256": "08336d1160053cf9c25a6d264fec7287ef35e0defe56c9f0f8c63284bc36c404",
-      "export_sha256": "08336d1160053cf9c25a6d264fec7287ef35e0defe56c9f0f8c63284bc36c404",
+      "source_sha256": "a32d037727a0ea9bf2065dfaaa7f5f8c22462b81f2a613e003fab2eaee19243d",
+      "export_sha256": "a32d037727a0ea9bf2065dfaaa7f5f8c22462b81f2a613e003fab2eaee19243d",
       "sanitized": false
     },
     {
@@ -10941,16 +10941,16 @@
     {
       "source": "/home/enok/srv_projetos/config.json",
       "path": "config/paseo.config.json",
-      "source_sha256": "8f5a4ae5248899a0114bf00de2ef2ec152d50e347c6a74de7dfd8b4e84b501f6",
-      "export_sha256": "80705e9e85771cc35c9c2aa13a5be7fbef4992fdee475c646925896a131e720e",
+      "source_sha256": "55799c6fb46f2207597db3121fec85bb4762a0fdc970dc6ba0d8928f5adcd161",
+      "export_sha256": "b0221a61455a12fd7a776705bb7cbe44c38a141045079bfa92a4ca8569ba3f57",
       "sanitized": true
     },
     {
       "path": "deploy/worker-comparison.py",
       "source": "/home/enok/.local/share/paseo-orchestrator/deploy/worker-comparison.py",
       "sanitized": false,
-      "source_sha256": "5fc578fd82b21021512b8e616f02d15f1a578badbb035100b216b14585bb5018",
-      "export_sha256": "5fc578fd82b21021512b8e616f02d15f1a578badbb035100b216b14585bb5018"
+      "source_sha256": "3618a7d4dff953ebd836fb04407ac32343a8577df4575ee6188c75e8b6711db3",
+      "export_sha256": "3618a7d4dff953ebd836fb04407ac32343a8577df4575ee6188c75e8b6711db3"
     }
   ],
   "updated_at": "2026-10-30T17:46:27.798213+00:00",
@@ -10968,5 +10968,12 @@
     "effort": "high",
     "baseline": "orchestration/evidence/worker-comparison/terra-high-start.json",
     "backup": "/home/enok/.local/state/paseo-backups/terra-high-20261030T204019Z"
+  },
+  "sol_medium_worker_experiment": {
+    "applied_at": "2026-10-30T21:09:59Z",
+    "dedicated": "codex-programmer/gpt-6.1-sol medium",
+    "original_emergency": "codex/gpt-6.1-terra high",
+    "baseline": "orchestration/evidence/worker-comparison/sol-medium-dedicated-terra-high-original-start.json",
+    "backup": "/home/enok/.local/state/paseo-backups/sol-medium-worker-20261030T210917Z"
   }
 }

@@ -118,15 +118,15 @@
       "utility",
       "reasoning"
     ],
-    "fallback_model": "codex-programmer/gpt-6.1-terra",
-    "fallback_thinking_option": "high",
+    "fallback_model": "codex-programmer/gpt-6.1-sol",
+    "fallback_thinking_option": "medium",
     "auto_return": true,
     "secondary_fallback_model": "antigravity2/gemini-3.8-flash-high",
     "secondary_fallback_thinking_option": "high",
     "emergency_original_account": {
       "enabled": true,
       "model": "codex/gpt-6.1-terra",
-      "thinking_option": "medium",
+      "thinking_option": "high",
       "activation": "all_regular_programmers_confirmed_exhausted",
       "return": "first_confirmed_regular_recovery_in_priority_order",
       "handoff": "next_task_boundary_preserve_running_delivery"
@@ -185,8 +185,8 @@
   "programmer_account": {
     "enabled": true,
     "provider": "codex-programmer",
-    "model": "gpt-6.1-terra",
-    "thinking": "high",
+    "model": "gpt-6.1-sol",
+    "thinking": "medium",
     "role": "programmer_only",
     "isolated_home": "/home/enok/srv_projetos/runtime/isolated/codex-programmer/home",
     "capacity_scope": "per_chat_and_host_resources",

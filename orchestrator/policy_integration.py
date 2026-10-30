@@ -821,9 +821,11 @@ def adopt_running_gpt(db):
 
 def _publish_exhaustion(provider, observed_at, message="quota exhausted"):
     """Push one declared quota fact to the shared account. No catalog poll required."""
+    from .model_limits import load_limits
+    dedicated_model=(load_limits().get("programmer_account") or {}).get("model","gpt-6.1-terra")
     model_key = provider
     provider = provider.split("/",1)[0]
-    ident = "claude-sonnet-5-5-medium" if model_key == runtime().ANTIGRAVITY_SONNET_KEY else {"codex-programmer": "gpt-6.1-terra", "codex": "gpt-6.1-sol", "claude": "claude-sonnet-5-5", "grok": "grok-4.7", "antigravity": "gemini-3.8-flash-high", "antigravity3": "gemini-3.8-flash-high", "antigravity2": "gemini-3.8-flash-high"}.get(provider)
+    ident = "claude-sonnet-5-5-medium" if model_key == runtime().ANTIGRAVITY_SONNET_KEY else {"codex-programmer": dedicated_model, "codex": "gpt-6.1-sol", "claude": "claude-sonnet-5-5", "grok": "grok-4.7", "antigravity": "gemini-3.8-flash-high", "antigravity3": "gemini-3.8-flash-high", "antigravity2": "gemini-3.8-flash-high"}.get(provider)
     if not ident:
         return
     try:

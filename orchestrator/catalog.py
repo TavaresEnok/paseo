@@ -55,7 +55,7 @@ def build(inventory, usage):
             from .codex_programmer_usage import evidence_entry as programmer_evidence
             try:models.append(programmer_evidence())
             except Exception as error:
-                models.append({'id':'gpt-6.1-terra','provider':'codex-programmer','available':False,'authenticated':False,
+                models.append({'id':(load_limits().get('programmer_account') or {}).get('model','gpt-6.1-terra'),'provider':'codex-programmer','available':False,'authenticated':False,
                   'cost':{'kind':'unknown','verified':False,'additional_cost':None},
                   'quota':{'status':'unknown','source':'official codex app-server account/rateLimits/read','error':str(error)[:400]},
                   'restrictions':{'allowed':False,'notes':'Quota/auth discovery failed; no positive evidence invented'}})

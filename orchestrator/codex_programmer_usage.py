@@ -5,10 +5,12 @@ HOME=Path('/home/enok/srv_projetos/runtime/isolated/codex-programmer/home')
 CACHE=Path('/home/enok/srv_projetos/orchestration/evidence/codex-programmer-usage.json')
 def evidence_entry(force=False):
  from .model_limits import load_limits
+ model=(load_limits().get("programmer_account") or {}).get("model","gpt-6.1-terra")
+ model_label="GPT-6.1 Sol" if model=="gpt-6.1-sol" else "GPT-6.1 Terra"
  effort=(load_limits().get("programmer_account") or {}).get("thinking","medium")
  if not force and CACHE.exists():
   v=json.loads(CACHE.read_text())
-  v['safe_thinking_options']=[effort];v['label']='GPT-6.1 Terra '+('Alto' if effort=='high' else 'Médio')+' — conta programador'
+  v['id']=model;v['safe_thinking_options']=[effort];v['label']=model_label+' '+('Alto' if effort=='high' else 'Médio')+' — conta programador'
   if time.time()-v.get('observed_at',0)<60:return v
  env=dict(os.environ,HOME=str(HOME),CODEX_HOME=str(HOME/'.codex'))
  for k in ('OPENAI_API_KEY','OPENAI_BASE_URL','CODEX_API_KEY'):env.pop(k,None)
@@ -45,7 +47,7 @@ def evidence_entry(force=False):
   credits=rates.get('credits') or {}
   safe=credits.get('hasCredits') is False and credits.get('unlimited') is False
   status='exhausted' if any(w['remaining_fraction']<=0 for w in windows) else 'available' if windows else 'unknown'
-  now=time.time();v={'id':'gpt-6.1-terra','provider':'codex-programmer','label':'GPT-6.1 Terra '+('Alto' if effort=='high' else 'Médio')+' — conta programador','available':True,'authenticated':True,'observed_at':now,'mode':'auto','safe_thinking_options':[effort],'roles':['programmer'],'preferred_specialties':['backend','coding','frontend','testing','debugging','advanced','architecture','utility','reasoning'],'account_hash':hashlib.sha256(account.get('email','').encode()).hexdigest(),'cost':{'kind':'subscription','verified':safe,'additional_cost':0 if safe else None,'source':'official Codex app-server ChatGPT OAuth; isolated programmer home; API keys stripped'},'quota':{'status':status,'observed_at':now,'source':'official codex app-server account/rateLimits/read','windows':windows},'restrictions':{'allowed':True,'notes':'Programmer only; Terra '+effort}}
+  now=time.time();v={'id':model,'provider':'codex-programmer','label':model_label+' '+('Alto' if effort=='high' else 'Médio')+' — conta programador','available':True,'authenticated':True,'observed_at':now,'mode':'auto','safe_thinking_options':[effort],'roles':['programmer'],'preferred_specialties':['backend','coding','frontend','testing','debugging','advanced','architecture','utility','reasoning'],'account_hash':hashlib.sha256(account.get('email','').encode()).hexdigest(),'cost':{'kind':'subscription','verified':safe,'additional_cost':0 if safe else None,'source':'official Codex app-server ChatGPT OAuth; isolated programmer home; API keys stripped'},'quota':{'status':status,'observed_at':now,'source':'official codex app-server account/rateLimits/read','windows':windows},'restrictions':{'allowed':True,'notes':'Programmer only; '+model+' '+effort}}
   CACHE.parent.mkdir(parents=True,exist_ok=True);tmp=CACHE.with_name(CACHE.name+'.'+uuid.uuid4().hex+'.tmp');tmp.write_text(json.dumps(v));tmp.chmod(0o600);tmp.replace(CACHE);return v
  finally:
   p.terminate()

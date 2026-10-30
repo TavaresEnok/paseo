@@ -32,7 +32,7 @@ export function assertModelAllowed(provider, model) {
   const resolved = model ?? (provider === 'codex' ? limits.codex.default_model : null);
   if (resolved && limits.forbidden_model_fragments.some(part => resolved.toLowerCase().includes(part.toLowerCase())))
     throw new Error('Modelo Astra proibido pela política explícita do usuário.');
-  if (provider === 'codex-programmer' && !(limits.programmer_account?.enabled && resolved === 'gpt-6.1-terra')) throw new Error('Conta programador permite somente GPT-6.1 Terra.');
+  if (provider === 'codex-programmer' && !(limits.programmer_account?.enabled && ['gpt-6.1-terra', limits.programmer_account.model ?? 'gpt-6.1-terra'].includes(resolved))) throw new Error('Modelo fora da política da conta programador.');
   if (provider === 'codex' && !limits.codex.allowed_models.includes(resolved))
     throw new Error('Codex limitado a GPT-6.1 Sol, GPT-6 Luna e GPT-5.6 Terra.');
   if (provider === 'opencode' && resolved !== 'xai/grok-4.7')
@@ -140,7 +140,7 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
   if ((provider === 'grok' || ticket.provider === 'grok') && !['programmer', 'reviewer'].includes(ticket.role))
     throw new Error('Grok não é gerente nesta política.');
   if (['antigravity','antigravity2','antigravity3'].includes(ticket.provider) && (ticket.role !== 'programmer' || !((ticket.model === 'gemini-3.8-flash-high' && ticket.effort === 'high') || (ticket.provider === 'antigravity2' && readModelLimits().antigravity_sonnet?.enabled && ticket.model === 'claude-sonnet-5-5-medium' && ticket.effort === 'medium')))) throw new Error('Antigravity somente programador Flash Alto ou Sonnet Médio.');
-  if (ticket.provider === 'codex-programmer' && (ticket.role !== 'programmer' || ticket.model !== 'gpt-6.1-terra' || !['medium','high'].includes(ticket.effort))) throw new Error('Conta Codex dedicada somente programador Terra Médio/Alto com ticket assinado.');
+  if (ticket.provider === 'codex-programmer' && (ticket.role !== 'programmer' || !((ticket.model === 'gpt-6.1-terra' && ['medium','high'].includes(ticket.effort)) || (ticket.model === 'gpt-6.1-sol' && ticket.effort === 'medium')))) throw new Error('Conta dedicada somente programador Terra Médio/Alto ou Sol Médio com ticket assinado.');
   return 'admitted';
 }
 function heldWorkerLease(ticket) {

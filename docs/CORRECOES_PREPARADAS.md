@@ -62,3 +62,14 @@ A ferramenta read-only `deploy/worker-comparison.py` registra snapshots em `orch
 Não há troca automática para Sol: a fase Sol Médio será iniciada em uma mudança posterior. Backup remoto: `/home/enok/.local/state/paseo-backups/terra-high-20261030T204019Z`. O gerente Webchat finalizou o turno após aviso administrativo antes do reload; planos e histórico preservados. Cobertura focada: contrato HTTP broker/tickets, Sonnet independente, roteamento/emergência e contador sem duplicação de cache/raciocínio.
 
 Ajuste posterior: o catálogo visual `agents.providers.codex-programmer.models` ainda tinha nome Terra Médio e apenas a opção Médio; o perfil persistido estava em `daemon.agentProfiles`, não no nível raiz. Atualizados via API com reload de configuração, sem restart nem interrupção das quatro sessões. Runtime, tickets e esforço efetivo já eram High. Catálogo agora exibe Terra Alto e opção Alto, mantendo Médio para sessões históricas.
+
+
+## Fase Sol Médio dedicado e Terra Alto original — 30/10/2026
+
+Conta dedicada passa a `codex-programmer/gpt-6.1-sol` Médio. Conta original usa Terra Alto somente no papel de programação emergencial; gerente e revisor permanecem com sua política Sol/Sonnet. As contas mantêm credenciais e quotas separadas. A renovação de quota não é provocada por mudar o modelo.
+
+Roteamento, broker, allowed_model, catálogo de assinatura, perfil nativo, opções visuais, instruções e gates foram alinhados. Tickets de sessões Terra anteriores continuam válidos até finalizar, mas novas admissões dedicadas são Sol Médio. Sol Alto na conta dedicada é rejeitado. Reserva original aceita Alto, mantendo a devolução de tarefas novas na primeira recuperação positiva de um programador normal. Nenhum aumento de paralelismo.
+
+Snapshots privados: `terra-high-end-before-sol-medium.json` e `sol-medium-dedicated-terra-high-original-start.json`. Tokens e retrabalho são separados por conta/modelo/esforço; tarefas herdadas devem ser identificadas na análise. A fase Terra Alto dedicada teve somente quatro inícios antes da troca e foi interrompida por quota, insuficiente para conclusão estatística de eficiência.
+
+Backup: `/home/enok/.local/state/paseo-backups/sol-medium-worker-20261030T210917Z`. Reload após confirmar todos os agentes ociosos; fila e planos preservados. Verificações focadas passaram, incluindo HTTP broker real, ticket HMAC, gate JS e runner para Sol Médio e recusa de esforço Alto.

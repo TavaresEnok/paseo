@@ -247,8 +247,8 @@ def assert_cli_admission(provider, provider_args, env=None):
                     if arg==flag:values.append(provider_args[i+1] if i+1<len(provider_args) else None)
                     elif arg.startswith(flag+'='):values.append(arg.split('=',1)[1])
                 if values != [expected]:raise SystemExit('Antigravity CLI selection differs from signed ticket.')
-        if provider == 'codex-programmer' and (ticket.get('role') != 'programmer' or ticket.get('model') != 'gpt-6.1-terra' or ticket.get('effort') not in {'medium','high'}):
-            raise SystemExit('Dedicated Codex requires programmer / GPT-6.1 Terra / medium or high.')
+        if provider == 'codex-programmer' and (ticket.get('role') != 'programmer' or (ticket.get('model'),ticket.get('effort')) not in {('gpt-6.1-terra','medium'),('gpt-6.1-terra','high'),('gpt-6.1-sol','medium')}):
+            raise SystemExit('Dedicated account requires programmer / Terra Medium or High / Sol Medium.')
         return ticket.get('role')
     except (OSError, ValueError, sqlite3.Error) as error:
         raise SystemExit('Admissão CLI indisponível.') from error
