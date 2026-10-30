@@ -16,7 +16,8 @@
     "allowed_models": [
       "gpt-6.1-sol",
       "gpt-6-luna",
-      "gpt-5.6-terra"
+      "gpt-5.6-terra",
+      "gpt-6.1-terra"
     ],
     "default_model": "gpt-6.1-sol",
     "default_thinking": "medium",
@@ -109,7 +110,15 @@
     "fallback_thinking_option": "medium",
     "auto_return": true,
     "secondary_fallback_model": "antigravity2/gemini-3.8-flash-high",
-    "secondary_fallback_thinking_option": "high"
+    "secondary_fallback_thinking_option": "high",
+    "emergency_original_account": {
+      "enabled": true,
+      "model": "codex/gpt-6.1-terra",
+      "thinking_option": "medium",
+      "activation": "all_regular_programmers_confirmed_exhausted",
+      "return": "first_confirmed_regular_recovery_in_priority_order",
+      "handoff": "next_task_boundary_preserve_running_delivery"
+    }
   },
   "supervision": {
     "enabled": true,

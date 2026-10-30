@@ -72,14 +72,16 @@ def role_summary(limits=None):
     chain=[(program.get('model'),program.get('thinking_option'))]
     if program.get('fallback_allowed'):
         chain.extend([(program.get('fallback_model'),program.get('fallback_thinking_option')),(program.get('secondary_fallback_model'),program.get('secondary_fallback_thinking_option'))])
+    emergency=program.get('emergency_original_account') or {}
+    if emergency.get('enabled'):chain.append((emergency.get('model'),emergency.get('thinking_option')))
     route=' -> '.join(f'{model} ({effort})' for model,effort in chain if model)
     return '\n'.join([
         'POLÍTICA ATUAL GERADA DE model-limits.json. Substitui regras históricas de modelos, esforços e contas.',
         f"Gerente único por chat: {sup.get('primary_model')} ({sup.get('primary_thinking')}); reserva {sup.get('fallback_model')} ({sup.get('fallback_thinking')}).",
         ('Gerência adaptativa: Sol Médio no acompanhamento/distribuição; Alto em planejamento complexo, conflito de integração ou bloqueio técnico repetido. O controlador escolhe por turno e registra motivo; uma única sessão.' if (sup.get('adaptive_effort') or {}).get('enabled') else ''),
         'Revisor recebe contexto compacto, critérios e diff; evidência completa deve ser consultada quando o resumo for insuficiente. Notificações ordinárias próximas são agrupadas por chat; bloqueios são imediatos.',
-        f'Programação em ordem: {route}. Trocar somente após quota esgotada confirmada; transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
-        'Codex programador usa conta isolada exclusivamente para programação; não usar a conta de gerência/revisão como programador. Somente Gemini conta 3 (antigravity2) habilitado.',
+        f'Programação em ordem: {route}. Programadores normais ficam até esgotar. A conta original Terra Médio só assume após esgotamento dos três; devolve novas tarefas ao primeiro programador normal com recuperação confirmada, na prioridade da cadeia. Finalize a entrega em curso sem interromper trabalho saudável. Transporte/autenticação não são quota. Se todas esgotarem, aguardar renovação.',
+        'Codex programador usa conta isolada exclusivamente para programação; a conta original de gerência/revisão só pode programar na exceção emergencial Terra Médio expressamente habilitada. Somente Gemini conta 3 (antigravity2) habilitado.',
         f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} ({review.get('fallback_thinking_option')}) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
         'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Terra dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
         'Astra somente gerente temporário Médio quando Claude, Grok, a conta Terra dedicada (quando habilitada) e todos os Gemini habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',

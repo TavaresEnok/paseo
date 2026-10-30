@@ -33,8 +33,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/account_broker.py",
       "path": "orchestrator/account_broker.py",
-      "source_sha256": "1b441f1d61b2526155b7843b84b13cef14f716623bd16041e4d139fc29ec7890",
-      "export_sha256": "1b441f1d61b2526155b7843b84b13cef14f716623bd16041e4d139fc29ec7890",
+      "source_sha256": "6cd255989145dae5dce64b69a7ca89e13d517d4c2edb11305aaca87b16f35668",
+      "export_sha256": "6cd255989145dae5dce64b69a7ca89e13d517d4c2edb11305aaca87b16f35668",
       "sanitized": false
     },
     {
@@ -194,8 +194,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/policy_runtime.py",
       "path": "orchestrator/policy_runtime.py",
-      "source_sha256": "5cd75d1f188d5c2758a562763985727be1f2c8e89121cfcd23fe8dcbe47e1fd1",
-      "export_sha256": "5cd75d1f188d5c2758a562763985727be1f2c8e89121cfcd23fe8dcbe47e1fd1",
+      "source_sha256": "414c4b1da57db4ec615495ca27d406922717106f6e1f0264ce94477d3fe5e4bf",
+      "export_sha256": "414c4b1da57db4ec615495ca27d406922717106f6e1f0264ce94477d3fe5e4bf",
       "sanitized": false
     },
     {
@@ -208,8 +208,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/model_limits.py",
       "path": "orchestrator/model_limits.py",
-      "source_sha256": "b2090a7c54dadd5aab992ea3d7462296adee7cb8e3c926a49ccdb1d68edcd5fc",
-      "export_sha256": "b2090a7c54dadd5aab992ea3d7462296adee7cb8e3c926a49ccdb1d68edcd5fc",
+      "source_sha256": "7dc1b98ccb305e0a336d5d6e27afd12ffd1a00072d90e594da8850c2ce62539c",
+      "export_sha256": "7dc1b98ccb305e0a336d5d6e27afd12ffd1a00072d90e594da8850c2ce62539c",
       "sanitized": false
     },
     {
@@ -475,8 +475,8 @@
     {
       "source": "/home/enok/.local/share/paseo-gemini-usage/index.server.ts",
       "path": "plugins/paseo-gemini-usage/index.server.ts",
-      "source_sha256": "0346c29988ddc32fc95cfbb2883fcca35e366e587cc799b74b9bf17221eaa253",
-      "export_sha256": "0346c29988ddc32fc95cfbb2883fcca35e366e587cc799b74b9bf17221eaa253",
+      "source_sha256": "ecb73a2391b2f4583935f815570a5a52d3273b549c0b17a75b473f5b7710f4a5",
+      "export_sha256": "ecb73a2391b2f4583935f815570a5a52d3273b549c0b17a75b473f5b7710f4a5",
       "sanitized": false
     },
     {
@@ -650,8 +650,8 @@
     {
       "source": "/home/enok/srv_projetos/config/manager-instructions.txt",
       "path": "config/manager-instructions.txt",
-      "source_sha256": "e42fe226c98933ddf8d858e5a66d4b6aa1973d8574afa5289dfbe09ea3114da8",
-      "export_sha256": "e42fe226c98933ddf8d858e5a66d4b6aa1973d8574afa5289dfbe09ea3114da8",
+      "source_sha256": "b9f91e273e09d061aba1dc854dcb5203b9dac86965adead164be95ec9fdd6561",
+      "export_sha256": "b9f91e273e09d061aba1dc854dcb5203b9dac86965adead164be95ec9fdd6561",
       "sanitized": false
     },
     {
@@ -10871,8 +10871,8 @@
     {
       "source": "/home/enok/srv_projetos/config/model-limits.json",
       "path": "config/model-limits.json",
-      "source_sha256": "86f970802fdb5995a7812fcda0b92d3903804478a6c58df5c5303afb5f4c1d65",
-      "export_sha256": "86f970802fdb5995a7812fcda0b92d3903804478a6c58df5c5303afb5f4c1d65",
+      "source_sha256": "8f3d1a3c1cd40deac64545fe813481f5582c0845fbb14f84f5e3406c72786adc",
+      "export_sha256": "8f3d1a3c1cd40deac64545fe813481f5582c0845fbb14f84f5e3406c72786adc",
       "sanitized": false
     },
     {
@@ -10881,7 +10881,14 @@
       "source_sha256": "f8c268ea47a086e9d2407a770b9c5865f3caf36c6b348a82b43a829d4926211f",
       "export_sha256": "f8c268ea47a086e9d2407a770b9c5865f3caf36c6b348a82b43a829d4926211f",
       "sanitized": false
+    },
+    {
+      "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/usage_dashboard.py",
+      "path": "orchestrator/usage_dashboard.py",
+      "source_sha256": "6fc445aa843e28454a728db4a36c77442272ecec6f6b3735b071e7a3869dc3cd",
+      "export_sha256": "6fc445aa843e28454a728db4a36c77442272ecec6f6b3735b071e7a3869dc3cd",
+      "sanitized": false
     }
   ],
-  "updated_at": "2026-10-30T15:57:08.717723+00:00"
+  "updated_at": "2026-10-30T16:27:46.880521+00:00"
 }

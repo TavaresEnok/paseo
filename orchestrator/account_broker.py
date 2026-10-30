@@ -132,6 +132,12 @@ class Broker:
             if meta.get("adopt_existing") is True:
                 return self._adopt(conn, host, chat, task, role_name, request, generation, phase, meta, moment, mode)
             state = _load_state(conn)
+            if role_name == 'programmer' and (limits.get('programming') or {}).get('emergency_original_account', {}).get('enabled'):
+                # Routing continuity belongs to this chat, never the last chat
+                # that happened to acquire a lease on the shared account.
+                previous = conn.execute("SELECT model_key FROM leases WHERE host_id=? AND chat_id=? AND role='programmer' ORDER BY granted_at DESC LIMIT 1", (host,chat)).fetchone()
+                state.setdefault('decisions', {}).pop('programmer', None)
+                if previous: state['decisions']['programmer'] = {'model_key':previous['model_key']}
             decision = evaluate(role_name, {"models": []}, limits, now=moment, state=state, implementation_model=meta.get("implementation_model"))
             _save_policy(conn, decision["state"], limits, moment)
             mode = "gpt_only" if decision["gpt_only"] else "normal"
