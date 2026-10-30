@@ -446,16 +446,18 @@
     {
       "source": "/home/enok/.local/share/paseo-policy/policy.mjs",
       "path": "policy/policy.mjs",
-      "source_sha256": "107aaf9953d035692d369372bc1ee9272bc29b0fb4db69e204e0daa36b36c0a9",
-      "export_sha256": "107aaf9953d035692d369372bc1ee9272bc29b0fb4db69e204e0daa36b36c0a9",
-      "sanitized": false
+      "source_sha256": "a034e84c133eff025f3f4c018eda7223d904b8f1fb270623dfe68d41152dc94e",
+      "export_sha256": "a034e84c133eff025f3f4c018eda7223d904b8f1fb270623dfe68d41152dc94e",
+      "sanitized": false,
+      "updated_at": "2026-10-30T08:29:33Z"
     },
     {
       "source": "/home/enok/.local/share/paseo-policy/install.py",
       "path": "policy/install.py",
-      "source_sha256": "bdb8b5d11369cf8d4fcf244f913e9c628d7b25b50ffda1ed85cc4d8ab1dd8d4a",
-      "export_sha256": "bdb8b5d11369cf8d4fcf244f913e9c628d7b25b50ffda1ed85cc4d8ab1dd8d4a",
-      "sanitized": false
+      "source_sha256": "8889651b3e281de93d5a0bcb84bc9f88607f84e8ae1756fbec91cc54da8ccc52",
+      "export_sha256": "8889651b3e281de93d5a0bcb84bc9f88607f84e8ae1756fbec91cc54da8ccc52",
+      "sanitized": false,
+      "updated_at": "2026-10-30T08:29:33Z"
     },
     {
       "source": "/home/enok/.local/share/paseo-policy/paseo-profile",
@@ -8419,9 +8421,10 @@
     {
       "source": "/home/enok/.local/share/node24/lib/node_modules/@getpaseo/cli/node_modules/@getpaseo/server/dist/server/server/agent/providers/codex-app-server-agent.js",
       "path": "installed-paseo/server/dist/server/server/agent/providers/codex-app-server-agent.js",
-      "source_sha256": "c8c685a8bf32062b647ac6ed0e38f8aadb2e4292affe53ab7fa86b4b1f7c002e",
-      "export_sha256": "c8c685a8bf32062b647ac6ed0e38f8aadb2e4292affe53ab7fa86b4b1f7c002e",
-      "sanitized": false
+      "source_sha256": "d7d2bb290c1dfbbbe474e2e2ddc86b1e0067ee339cab19e3802904d981e35738",
+      "export_sha256": "d7d2bb290c1dfbbbe474e2e2ddc86b1e0067ee339cab19e3802904d981e35738",
+      "sanitized": false,
+      "updated_at": "2026-10-30T08:29:33Z"
     },
     {
       "source": "/home/enok/.local/share/node24/lib/node_modules/@getpaseo/cli/node_modules/@getpaseo/server/dist/server/server/agent/providers/diagnostic-utils.js",

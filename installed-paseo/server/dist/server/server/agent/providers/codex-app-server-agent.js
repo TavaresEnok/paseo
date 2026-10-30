@@ -1,3 +1,4 @@
+import { installCodexHistoryPolicy } from 'file:///home/enok/.local/share/paseo-policy/policy.mjs';
 import { validateProviderOptions } from "../provider-options.js";
 import { getAgentStreamEventTurnId, } from "../agent-sdk-types.js";
 import { importSessionFromPersistence } from "../provider-session-import.js";
@@ -6074,3 +6075,5 @@ function resolveSkillDescription(skill) {
     return "Skill";
 }
 //# sourceMappingURL=codex-app-server-agent.js.map
+// PASEO_LOCAL_POLICY_V1
+installCodexHistoryPolicy(CodexAppServerAgentSession);

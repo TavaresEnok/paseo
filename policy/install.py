@@ -25,6 +25,7 @@ DAEMON_ENV = {
 TARGETS = [
     (SERVER / 'agent-manager.js', 'installManagerPolicy', 'AgentManager'),
     (SERVER / 'providers/claude/agent.js', 'installClaudePolicy', 'ClaudeAgentSession'),
+    (SERVER / 'providers/codex-app-server-agent.js', 'installCodexHistoryPolicy', 'CodexAppServerAgentSession'),
 ]
 
 def digest(path):
@@ -42,9 +43,10 @@ def main():
     manifest_path = BACKUPS / 'manifest.json'
     manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
     if args.check:
-        if not manifest or any(digest(Path(path)) != entry['patched_sha256'] for path, entry in manifest.items()):
+        if (not manifest or any(str(path) not in manifest for path, _, _ in TARGETS)
+                or any(digest(Path(path)) != entry['patched_sha256'] for path, entry in manifest.items())):
             raise SystemExit('Política ausente ou arquivos do Paseo alterados; execute install.py e reinicie o daemon.')
-        print('Política instalada nos dois pontos do Paseo 0.13.2.')
+        print('Política instalada nos três pontos do Paseo 0.13.2 (incluindo histórico Codex).')
         return
     # Verify every source before changing any installed file.
     updates = []

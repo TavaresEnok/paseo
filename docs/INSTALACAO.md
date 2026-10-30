@@ -41,9 +41,9 @@ Não foi reconstruída a imagem durante a publicação. O filtro C trata a compa
 
 ## Política instalada e código distribuído
 
-Instale as dependências npm nas versões registradas antes de usar `policy/install.py`. Esse aplicador verifica a versão 0.13.2, guarda cópias originais e injeta a política em `agent-manager.js` e no agente Claude. `--check` verifica os hashes registrados no manifesto local da instalação.
+Instale as dependências npm nas versões registradas antes de usar `policy/install.py`. Esse aplicador verifica a versão 0.13.2, guarda cópias originais e injeta a política em `agent-manager.js`, no agente Claude e no adaptador Codex `codex-app-server-agent.js`. `--check` exige os três pontos e verifica os hashes registrados no manifesto local da instalação. A integração Codex usa `thread/inject_items` para atualizar instruções developer nas sessões existentes antes de iniciar turnos, preservando o histórico.
 
-`installed-paseo/cli` e `installed-paseo/server` permitem comparar o JavaScript efetivamente instalado, inclusive modificações além dessas duas injeções. Eles não incluem `node_modules`. O instalador de política sozinho não deve ser considerado uma reprodução garantida de todas as diferenças encontradas nesse código distribuído.
+`installed-paseo/cli` e `installed-paseo/server` permitem comparar o JavaScript efetivamente instalado, inclusive modificações além dessas três injeções. Eles não incluem `node_modules`. O instalador de política sozinho não deve ser considerado uma reprodução garantida de todas as diferenças encontradas nesse código distribuído.
 
 ## Capacidade compartilhada e segredos
 

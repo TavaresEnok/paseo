@@ -6,6 +6,8 @@ Autonomia de desenvolvimento: o usuário fornece uma entrega, um gerente organiz
 
 ## Correções recentes incluídas neste snapshot
 
+- **Atualização posterior à publicação inicial (30/10, 05:29 Fortaleza):** constatado que os campos `developerInstructions` e `config` adicionados pelo adaptador ao `turn/start` não pertencem ao schema `TurnStartParams` do Codex 0.164. A configuração exibida estava atual, mas os dois históricos ainda continham a instrução developer antiga exigindo Grok exclusivo. `installCodexHistoryPolicy` agora usa `thread/inject_items` para acrescentar a política vigente como mensagem developer antes do turno. A atualização ocorre na primeira utilização de cada sessão carregada e quando a política muda; falha da injeção impede iniciar o turno. O histórico é preservado. Os dois rollouts reais registraram a nova mensagem developer, e o gerente Webchat reconheceu a cadeia Terra/Gemini. O instalador verifica agora três pontos de integração, incluindo o adaptador Codex.
+
 - Pausa administrativa persistente e checagem antes do despacho de trabalhadores.
 - Operações administrativas da API reservadas ao gerente admitido e atual.
 - Chamadas de supervisão ao daemon em segundo plano, evitando segurar a fila durante uma chamada lenta.
