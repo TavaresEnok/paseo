@@ -32,6 +32,7 @@ ENV = {**os.environ, 'PATH': '/home/enok/.local/share/node24/bin:/home/enok/.loc
 TERMINAL = {'done', 'blocked', 'canceled'}
 INTEGRATION_DIRTY_PREFIX = 'Branch de integração contém alterações locais inesperadas.'
 MUTATION_LOCK = threading.RLock()
+MUTATION_CONTEXT = threading.local()
 
 class LaunchUncertain(RuntimeError):
     """The same durable native create request must be retried, never replaced."""
@@ -43,10 +44,18 @@ def serialized(function):
     @wraps(function)
     def guarded(*args, **kwargs):
         STATE.mkdir(parents=True, exist_ok=True, mode=0o700)
-        with MUTATION_LOCK, (STATE/'mutation.lock').open('a') as lock:
-            fcntl.flock(lock, fcntl.LOCK_EX)
-            try: return function(*args, **kwargs)
-            finally: fcntl.flock(lock, fcntl.LOCK_UN)
+        with MUTATION_LOCK:
+            # flock ownership is per open file description, not per Python
+            # process. Nested serialized calls must reuse this thread's lock.
+            if getattr(MUTATION_CONTEXT,'held',False):
+                return function(*args, **kwargs)
+            with (STATE/'mutation.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                MUTATION_CONTEXT.held=True
+                try: return function(*args, **kwargs)
+                finally:
+                    MUTATION_CONTEXT.held=False
+                    fcntl.flock(lock, fcntl.LOCK_UN)
     return guarded
 
 def now(): return time.time()

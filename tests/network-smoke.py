@@ -28,7 +28,10 @@ def main():
  finally:
   server.shutdown();server.server_close()
   run('iptables','-w','-D','INPUT','-i','br-paseowork','-j','DROP',check=False)
-  run('iptables','-w','-D','DOCKER-USER','-i','br-paseowork','-j','PASEO_WORK_EGRESS',check=False)
+  run('iptables','-w','-D','FORWARD','-i','br-paseowork','-j','PASEO_WORK_EGRESS',check=False)
+  run('iptables','-w','-D','FORWARD','-o','br-paseowork','-m','conntrack','--ctstate','ESTABLISHED,RELATED','-j','ACCEPT',check=False)
+  run('iptables','-w','-D','FORWARD','-o','br-paseowork','-j','DROP',check=False)
+  run('iptables','-w','-t','nat','-D','POSTROUTING','-s','172.30.248.0/24','!','-o','br-paseowork','-j','MASQUERADE',check=False)
   run('iptables','-w','-F','PASEO_WORK_EGRESS',check=False);run('iptables','-w','-X','PASEO_WORK_EGRESS',check=False)
   run('docker','network','rm','paseo-workers',check=False)
 if __name__=='__main__':main()

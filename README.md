@@ -1,4 +1,4 @@
-> **PREPARAÇÃO — NÃO APLICADA AOS SERVIÇOS ATIVOS.** Esta branch contém as correções da auditoria sobre `0bf8b5c`. A instalação em uso continua na versão anterior até autorização explícita para aplicar. Consulte `docs/CORRECOES_PREPARADAS.md`.
+> **Aplicado no NexoISP em 30/10/2026.** Correções da auditoria ativadas; gerente com root e trabalhadores isolados. Detalhes em `docs/CORRECOES_PREPARADAS.md`.
 
 # Paseo NexoISP — implementação em uso
 

@@ -1,8 +1,8 @@
-# Correções preparadas, sem implantação
+# Correções da auditoria — aplicadas no NexoISP
 
 Base: `0bf8b5c`. Branch: `staged/audit-hardening-20261030`.
 
-Nenhum serviço, configuração, plano ou banco do principal/NexoISP foi alterado por esta preparação. O trabalho foi feito em outra worktree. A publicação desta branch autoriza revisão e CI em runners efêmeros, não aplicação nem retomada de planos.
+A preparação foi feita em outra worktree e validada sem alterar os serviços ativos. Em 30/10/2026 o usuário autorizou aplicar e retomar os trabalhos. A implantação preservou worktrees, entregas e contagens de tentativa. Ambos os projetos retomaram com trabalhadores na bridge isolada.
 
 ## Comportamento preparado
 
@@ -31,4 +31,12 @@ A classificação de risco continua determinística: nomes e critérios não sã
 4. Aplicar os mesmos módulos de risco/política no controlador e no broker compartilhado. Instalar novos helpers, patch de bridge e política nativa. Mesclar flags de autonomia por papel e de revisão/budget. Não recriar executores, apagar recibos ou retomar planos pausados.
 5. Recarregar somente os componentes necessários e confirmar o primeiro lançamento legítimo de revisão Médio/Alto e a continuidade da fila. Em caso de divergência de admissão, restaurar código/configuração do backup; preservar worktrees, commits e bancos.
 
-Esta é uma preparação. Não há timer, hook, script remoto ou ação automática de implantação associado à branch.
+## Registro da implantação autorizada
+
+Aplicado no NexoISP em 30/10/2026 (14:42–14:45 Fortaleza). O broker compartilhado recebeu os módulos compatíveis; os demais componentes da instalação principal permaneceram na versão anterior. Backup do NexoISP: `/home/enok/.local/state/paseo-backups/audit-activation-20261030T174247Z`.
+
+O host tinha o pool padrão Docker ocupado e não apresentava a chain DOCKER-USER. O instalador agora usa a sub-rede dedicada 172.30.248.0/24, detecta o backend sem mudar alternatives e aplica regras em FORWARD/INPUT/NAT limitadas à própria bridge. Não altera políticas globais nem reinicia Docker. O teste no host confirmou bloqueio de acesso ao host e saída HTTPS para o endpoint OAuth público.
+
+Foi encontrado e corrigido um deadlock existente: `pause()` chamava `_pause()`, ambos serialized, e tentava adquirir flock por um segundo descritor. A exclusão mantém o lock entre processos, mas reaproveita a posse nas chamadas aninhadas da mesma thread. Há regressão executada em subprocesso com timeout.
+
+Os dois trabalhos em curso receberam checkpoints e pausa administrativa. Após reload e confirmação de arquivamento dos executores anteriores, foram retomados pelo controlador nas mesmas worktrees, sem extensão de tentativas. Confirmados programadores ativos nos planos NexoISP `ac5776ea85cb` e Webchat `4e5353155665`, em `paseo-workers`, sem erro nativo no momento da verificação. A recuperação inicial aguardou o carregamento da sessão antiga; não descartou recibos incertos.

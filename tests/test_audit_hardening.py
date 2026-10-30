@@ -1,4 +1,4 @@
-import copy,importlib.util,json,sqlite3,tempfile,unittest
+import copy,importlib.util,json,sqlite3,tempfile,unittest,subprocess,sys
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -80,3 +80,21 @@ class NetworkPlanTests(unittest.TestCase):
   spec=importlib.util.spec_from_file_location('network_plan',ROOT/'deploy/hardening/prepare-worker-network.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
   p=module.plan();self.assertFalse(p['ipv6']);self.assertIn('169.254.0.0/16',p['forward_rules']);self.assertIn('10.0.0.0/8',p['forward_rules']);self.assertEqual(p['input_rule'][-1],'DROP')
 if __name__=='__main__':unittest.main()
+
+class MutationLockTests(unittest.TestCase):
+ def test_nested_serialized_calls_do_not_lock_themselves(self):
+  code="""import tempfile
+from pathlib import Path
+from orchestrator import core
+with tempfile.TemporaryDirectory() as d:
+ core.STATE=Path(d)
+ @core.serialized
+ def inner():return 'ok'
+ @core.serialized
+ def outer():return inner()
+ assert outer()=='ok'
+ assert outer()=='ok'
+print('nested lock released')
+"""
+  result=subprocess.run([sys.executable,'-c',code],cwd=ROOT,capture_output=True,text=True,timeout=3)
+  self.assertEqual(result.returncode,0,result.stderr);self.assertIn('nested lock released',result.stdout)
