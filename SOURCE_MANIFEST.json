@@ -33,8 +33,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/account_broker.py",
       "path": "orchestrator/account_broker.py",
-      "source_sha256": "e69e724c00473d0975b35bf09d9ce389f56eb8d7b38bbb86226e8082befe49e1",
-      "export_sha256": "e69e724c00473d0975b35bf09d9ce389f56eb8d7b38bbb86226e8082befe49e1",
+      "source_sha256": "e821e5286872d0788820c0f29df1a8239799c9ea5dc460c729f2666d275e7693",
+      "export_sha256": "e821e5286872d0788820c0f29df1a8239799c9ea5dc460c729f2666d275e7693",
       "sanitized": false
     },
     {
@@ -208,8 +208,8 @@
     {
       "source": "/home/enok/.local/share/paseo-orchestrator/orchestrator/model_limits.py",
       "path": "orchestrator/model_limits.py",
-      "source_sha256": "d126fed4d8a08d61e35edbb9eee55041962f66c8e3e752605a82a89bb24ba29e",
-      "export_sha256": "d126fed4d8a08d61e35edbb9eee55041962f66c8e3e752605a82a89bb24ba29e",
+      "source_sha256": "87a168f6706833cab7cf7b9d12d9d375da5ad636b7d772ee54ae8a9b59d7dfba",
+      "export_sha256": "87a168f6706833cab7cf7b9d12d9d375da5ad636b7d772ee54ae8a9b59d7dfba",
       "sanitized": false
     },
     {
@@ -650,8 +650,8 @@
     {
       "source": "/home/enok/srv_projetos/config/manager-instructions.txt",
       "path": "config/manager-instructions.txt",
-      "source_sha256": "9fa6b6ebf865a954ffe4be85b876a93359662e948638598bf6bbf2f76ca9b7c9",
-      "export_sha256": "9fa6b6ebf865a954ffe4be85b876a93359662e948638598bf6bbf2f76ca9b7c9",
+      "source_sha256": "cee11f68aa8cb8f9d741b239d06a97fa1890f53d123bf06935bb54d3b7fcecb6",
+      "export_sha256": "7bf9f5595ac089ea4e95b5c9fff324f70ce5ffdefff38baedb4993b122e2ca1d",
       "sanitized": false
     },
     {
@@ -769,15 +769,15 @@
     {
       "source": "/home/enok/srv_projetos/workspace/AGENTS.md",
       "path": "config/workspace/AGENTS.md",
-      "source_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
-      "export_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
+      "source_sha256": "d962a149b4bb420e98efa3f7971d9175cff9859980738d71bde7ea6dd2e03c57",
+      "export_sha256": "5e6751846a63c92a71a5b40eeb1c353079ec443940bda81b3e0232eed841af77",
       "sanitized": false
     },
     {
       "source": "/home/enok/srv_projetos/workspace/CLAUDE.md",
       "path": "config/workspace/CLAUDE.md",
-      "source_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
-      "export_sha256": "317b5f16794a6887f328ae66179e2a7dbe9cb4b8032ca549b9d9f25c3d0cc4f7",
+      "source_sha256": "d962a149b4bb420e98efa3f7971d9175cff9859980738d71bde7ea6dd2e03c57",
+      "export_sha256": "5e6751846a63c92a71a5b40eeb1c353079ec443940bda81b3e0232eed841af77",
       "sanitized": false
     },
     {

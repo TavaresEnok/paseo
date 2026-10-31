@@ -52,6 +52,16 @@ class ContingencyContract(unittest.TestCase):
   import importlib.util
   spec=importlib.util.spec_from_file_location('isolated_sol',ROOT/'native/isolated-provider.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
   self.assertEqual(m.assert_cli_admission('codex-programmer',['app-server'],env),'programmer')
+ def test_eight_original_programmers_across_chats_then_queue_ninth(self):
+  self.client.observe(self.catalog(),self.limits)
+  expected=self.limits['programming']['emergency_original_account']['model']
+  for i in range(8):
+   grant=self.grant('chat-'+str(i%2),'task-'+str(i),expected)
+   self.assertTrue(grant['granted'],grant)
+  denied=self.grant('third-chat','ninth',expected)
+  self.assertFalse(denied['granted'])
+  self.assertEqual(denied['reason'],'account_programmer_cap')
+  self.assertEqual(self.client.status()['counts']['programmers_gpt'],8)
  def test_original_shared_cap_and_native_admission(self):
   catalog=self.catalog();self.client.observe(catalog,self.limits)
   with patch.object(model_limits,'LIMITS_FILE',ROOT/'config/model-limits.json'):

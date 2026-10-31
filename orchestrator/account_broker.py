@@ -22,7 +22,7 @@ except ImportError:
     from account_client import CapacityUnavailable
     from policy_runtime import absorb_catalog, evaluate, OBSERVATION_KEYS
 
-PROGRAMMER_CAP = 4
+PROGRAMMER_CAP = 8
 REVIEWER_CAP = 2
 CHAT_WORKER_CAP = 10
 DEFAULT_PENDING_TTL = 30.0
