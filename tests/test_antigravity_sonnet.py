@@ -19,7 +19,7 @@ class SonnetRouting(unittest.TestCase):
   self.assertFalse(d['gpt_only'])
   state=r.note_exhaustion(d['state'],r.ANTIGRAVITY_SONNET_KEY,self.now+1,'quota exhausted')
   d=r.evaluate('programmer',[],self.limits,now=self.now+2,state=state)
-  self.assertEqual(d['model_key'],r.EMERGENCY_TERRA[0])
+  self.assertEqual(d['model_key'],self.limits['programming']['emergency_original_account']['model'])
   self.assertTrue(d['gpt_only'])
  def test_return_from_emergency_positive_only_and_regular_sticky(self):
   state={'decisions':{'programmer':{'model_key':r.EMERGENCY_TERRA[0]}}}

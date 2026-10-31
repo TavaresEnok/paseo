@@ -319,7 +319,7 @@ def absorb_global(local, catalog, limits, *, now=None):
     if isinstance(remote, dict):
         base=runtime()._blank_state(base)
         for provider,record in (remote.get('observations') or {}).items():
-            if provider in runtime().PROVIDERS and isinstance(record,dict):runtime()._accept(base,provider,record.get('status'),record.get('observed_at'),record.get('reason'))
+            if provider in runtime().OBSERVATION_KEYS and isinstance(record,dict):runtime()._accept(base,provider,record.get('status'),record.get('observed_at'),record.get('reason'))
     absorbed = runtime().absorb_catalog(base, catalog or {}, limits or {}, now=now)
     state = absorbed["state"]
     if isinstance(local, dict) and isinstance(local.get("decisions"), dict):
