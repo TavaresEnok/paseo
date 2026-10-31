@@ -149,7 +149,9 @@
       "activate_when": "claude_grok_dedicated_terra_and_all_enabled_gemini_exhausted_and_original_codex_available",
       "return_to": "codex/gpt-6.1-sol",
       "return_thinking": "medium",
-      "return_when": "fresh_positive_quota_on_claude_grok_dedicated_terra_or_enabled_gemini"
+      "return_when": "fresh_positive_quota_on_claude_grok_dedicated_terra_or_enabled_gemini",
+      "enabled": false,
+      "disabled_reason": "User revoked Astra manager exception"
     },
     "adaptive_effort": {
       "enabled": true,

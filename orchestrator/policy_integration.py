@@ -183,7 +183,7 @@ def select_for_role(catalog, task, limits, *, now=None, phase="implement", state
         base["rejected"] = [{"key": key, "reasons": ["effort_forbidden"]}]
         return base
     if isinstance(key, str) and "astra" in key.lower():
-        if not astra_allowed(role, model, effort):
+        if not astra_allowed(role, model, effort, limits):
             base["reason"] = "astra_forbidden"
             base["rejected"] = [{"key": key, "reasons": ["astra_forbidden"]}]
             return base

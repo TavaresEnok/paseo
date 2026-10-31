@@ -146,6 +146,8 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
     previous = working["decisions"].get(normalized)
     previous_key = previous.get("model_key") if isinstance(previous, dict) else None
     choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits), (limits.get("programmer_account") or {}).get("thinking", "medium"), (limits.get("programmer_account") or {}).get("model", "gpt-6.1-terra"), ((limits.get("programming") or {}).get("emergency_original_account") or {}).get("thinking_option", "medium"), ((limits.get("programming") or {}).get("emergency_original_account") or {}).get("model", "codex/gpt-6.1-terra").split("/",1)[-1])
+    if normalized == "manager" and choice["model_key"] == ASTRA_MEDIUM[0] and (limits.get("supervision") or {}).get("temporary_override", {}).get("enabled") is False:
+        choice = _chosen(SOL_HIGH, "manager_astra_disabled_by_operator")
     if normalized == "manager" and choice["model_key"] == SOL_HIGH[0] and (limits.get("supervision") or {}).get("primary_thinking") == "medium":
         choice = _chosen(SOL_MEDIUM, "manager_primary_sol_medium")
     if normalized == "reviewer" and implementation_model == ANTIGRAVITY_SONNET_KEY and choice["model_key"] == SONNET_HIGH[0] and effective["codex"]["status"] != "exhausted":

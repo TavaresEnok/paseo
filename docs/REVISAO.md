@@ -82,3 +82,11 @@ Snapshots de encerramento Terra Alto e início Sol Médio foram gravados nos doi
 ## Recuperação da cota do Sonnet Antigravity entre servidores (30/10, 22:57 Fortaleza)
 
 `absorb_global` importava observações somente de PROVIDERS, excluindo a chave de cota específica `antigravity2/claude-sonnet-5-5-medium`. Assim, um servidor podia confirmar uma execução disponível enquanto o outro continuava com a exaustão antiga, mantendo Astra indevidamente. A importação agora percorre OBSERVATION_KEYS; observações continuam monotônicas e a confirmação de recuperação de um modelo não altera a cota dos outros modelos. Regressão verifica que a recuperação compartilhada mais nova vence a exaustão local antiga. Três regressões existentes de roteamento Antigravity também passam, com a expectativa emergencial atualizada ao modelo configurado Sol Médio. Aplicado em ambos os controladores sem reiniciar daemons nem trabalhadores; retorno do gerente ocupado é feito no fim do turno.
+
+## Desativação da exceção Astra (30/10, 23:06 Fortaleza)
+
+Após nova reclamação explícita do usuário, foi retirada a exceção de gerência Astra: `supervision.temporary_override.enabled=false` nos dois servidores. A recuperação de Sonnet havia sido real, mas outra resposta de quota esgotada tornou a ativar a exceção histórica; a correção de sincronização anterior não impedia esse comportamento autorizado pela configuração antiga.
+
+O seletor retorna Sol mesmo quando todos os demais provedores esgotam, e a admissão Python recusa Astra quando desativado. A política Node também verifica a chave; o arquivo foi atualizado para futuras cargas, sem reiniciar daemons ocupados. Para bloquear já nas instâncias carregadas, os tickets Astra antigos foram revogados. Perfis Astra foram removidos do seletor e sessões antigas receberam título de histórico desativado, preservando conversas. Os três gerentes públicos ativos (Painel, NexoISP e Webchat) foram conferidos em Sol Médio após a reconciliação. Ajust_ERP estava arquivado pelo usuário e não foi retomado.
+
+Cinco regressões focadas passaram, incluindo o caso de todas as cotas externas esgotadas com decisão anterior Astra. O bloqueio explícito prevalece e o gerente retorna Sol sem aguardar renovação externa. Trabalhadores não foram interrompidos; pausas e históricos permanecem preservados.

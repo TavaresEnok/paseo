@@ -129,6 +129,7 @@ export function assertTurnAdmission(agentId, provider, requestedModel, requested
   }
   const model = String(ticket.model || '');
   if (model.toLowerCase().includes('astra')) {
+    if (limits.supervision?.temporary_override?.enabled === false) throw new Error('Astra desativado por decisão atual do usuário.');
     if (ticket.role !== 'manager' || ticket.effort !== 'medium' || !model.endsWith('gpt-6-astra') || ticket.provider !== 'codex')
       throw new Error('Astra somente gerente médio com ticket do controlador.');
     return 'astra';

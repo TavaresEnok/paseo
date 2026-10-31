@@ -23,8 +23,11 @@ def allowed_model(provider,model,limits=None):
         return model.rsplit('/',1)[-1].lower()==required and model in limits['grok']['allowed_models']
     return True
 
-def astra_allowed(role, model, effort):
+def astra_allowed(role, model, effort, limits=None):
     """Astra stays out of the global allowlist. Only temporary manager medium qualifies."""
+    limits = limits if limits is not None else load_limits()
+    if (limits.get("supervision") or {}).get("temporary_override", {}).get("enabled") is False:
+        return False
     if role != "manager" or effort != "medium" or not isinstance(model, str):
         return False
     return model.lower().rsplit("/", 1)[-1] == "gpt-6-astra"
@@ -89,7 +92,7 @@ def role_summary(limits=None):
         f'Codex programador usa conta isolada exclusivamente para programação: {dedicated_label}. A conta original de gerência/revisão só pode programar na exceção emergencial {reserve_name} {reserve_effort} expressamente habilitada. Somente conta 3 (antigravity2) habilitada.',
         f"Revisor principal {review.get('model')} ({review.get('thinking_option')}); Sonnet disponível tem prioridade mesmo sem quota GPT. Sem Sonnet, {review.get('fallback_model')} (Médio em tarefas normais; Alto conforme risco e criticidade quando revisão adaptativa estiver habilitada) revisa qualquer programador. Sem GPT e Sonnet, Grok Alto se disponível. Sessões sempre independentes.",
         'Até 10 trabalhadores por chat além de um gerente, conforme recursos. Conta GPT original em modo GPT-only: quatro programadores e dois revisores compartilhados. A conta Codex dedicada segue o limite por chat e recursos, sem compartilhar a quota original.',
-        'Astra somente gerente temporário Médio quando Claude, Grok, a conta Codex dedicada (quando habilitada) e todos os modelos Antigravity habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.',
+        ('Astra proibido em todos os papéis por decisão atual do usuário. A exaustão dos outros provedores não autoriza Astra.' if (sup.get('temporary_override') or {}).get('enabled') is False else 'Astra somente gerente temporário Médio quando Claude, Grok, a conta Codex dedicada (quando habilitada) e todos os modelos Antigravity habilitados esgotarem e Codex estiver disponível. Retorno ao Sol com prova positiva mais nova, respeitando o esforço vigente de gerência. Nunca esforço acima de Alto; somente assinaturas sem custo adicional.'),
         'O gerente planeja, divide escopos independentes, delega, acompanha revisões e continua o backlog autorizado; não implementa. Retorno ao modelo primário somente em fronteira segura, sem interromper trabalhador saudável.',
         ('Orçamento de recuperação: detectar falhas repetidas sem progresso; não repetir recover quando orçamento esgotar. Preservar a tarefa e avisar o usuário; outras tarefas continuam. Extensão desse orçamento global somente por operação humana explícita. O max_attempts do contrato é distinto: o gerente pode ampliar uma tentativa via recover --task-spec, com causa concreta e orçamento global disponível, preservando testes/aceite/escopo; não pedir nova autorização humana para isso nem repetir sem progresso.' if (limits.get('recovery_budget') or {}).get('enabled') else ''),
         'Gerente mantém root/sudo autorizado. Trabalhadores executam somente na worktree isolada e encaminham necessidades administrativas ao gerente.',
