@@ -145,7 +145,7 @@ def evaluate(role, catalog, limits, *, now=None, state=None, implementation_mode
     normalized = str(role or "").strip().lower()
     previous = working["decisions"].get(normalized)
     previous_key = previous.get("model_key") if isinstance(previous, dict) else None
-    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits), (limits.get("programmer_account") or {}).get("thinking", "medium"), (limits.get("programmer_account") or {}).get("model", "gpt-6.1-terra"), ((limits.get("programming") or {}).get("emergency_original_account") or {}).get("thinking_option", "medium"))
+    choice = _select(normalized, effective, previous_key, bool((limits.get("gemini") or {}).get("enabled")), "antigravity2" in enabled_gemini(limits), "antigravity3" in enabled_gemini(limits), "antigravity" in enabled_gemini(limits), bool((limits.get("programmer_account") or {}).get("enabled")), bool((limits.get("programming") or {}).get("emergency_original_account", {}).get("enabled")), enabled_sonnet(limits), (limits.get("programmer_account") or {}).get("thinking", "medium"), (limits.get("programmer_account") or {}).get("model", "gpt-6.1-terra"), ((limits.get("programming") or {}).get("emergency_original_account") or {}).get("thinking_option", "medium"), ((limits.get("programming") or {}).get("emergency_original_account") or {}).get("model", "codex/gpt-6.1-terra").split("/",1)[-1])
     if normalized == "manager" and choice["model_key"] == SOL_HIGH[0] and (limits.get("supervision") or {}).get("primary_thinking") == "medium":
         choice = _chosen(SOL_MEDIUM, "manager_primary_sol_medium")
     if normalized == "reviewer" and implementation_model == ANTIGRAVITY_SONNET_KEY and choice["model_key"] == SONNET_HIGH[0] and effective["codex"]["status"] != "exhausted":
@@ -204,7 +204,7 @@ def _mode(working, effective):
     )
 
 
-def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False, sonnet_enabled=False, dedicated_effort="medium", dedicated_model="gpt-6.1-terra", emergency_effort="medium"):
+def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled=False, gemini3_enabled=False, gemini1_enabled=True, programmer_account=False, emergency_original=False, sonnet_enabled=False, dedicated_effort="medium", dedicated_model="gpt-6.1-terra", emergency_effort="medium", emergency_model="gpt-6.1-terra"):
     codex = effective["codex"]["status"]
     claude = effective["claude"]["status"]
     grok = effective["grok"]["status"]
@@ -231,7 +231,9 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
         if dedicated_model not in {"gpt-6.1-terra", "gpt-6.1-sol"} or (dedicated_model=="gpt-6.1-sol" and dedicated_effort!="medium"):return _queued("programmer_model_forbidden")
         if emergency_effort not in {"medium","high"}:return _queued("programmer_emergency_effort_forbidden")
         dedicated_worker = ("codex-programmer/"+dedicated_model, dedicated_effort)
-        emergency_worker = (EMERGENCY_TERRA[0], emergency_effort)
+        if emergency_model not in {"gpt-6.1-terra","gpt-6.1-sol"} or (emergency_model=="gpt-6.1-sol" and emergency_effort!="medium"):
+            return _queued("programmer_emergency_model_forbidden")
+        emergency_worker = ("codex/"+emergency_model, emergency_effort)
         regular = [GROK_MEDIUM]
         if programmer_account: regular.append(dedicated_worker)
         if gemini_enabled and gemini1_enabled: regular.append(GEMINI_HIGH)
@@ -244,7 +246,7 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
             for pair in regular:
                 if previous_key == pair[0] and effective[quota_key(pair[0])]['status'] not in {'exhausted','recovery_due'}:
                     return _chosen(pair, 'programmer_keep_regular_until_exhausted')
-            if previous_key == EMERGENCY_TERRA[0]:
+            if previous_key in {EMERGENCY_TERRA[0], emergency_worker[0]}:
                 for pair in regular:
                     if effective[quota_key(pair[0])]['status'] == 'available':
                         return _chosen(pair, 'programmer_return_from_emergency_positive_quota')
@@ -265,7 +267,7 @@ def _select(role, effective, previous_key, gemini_enabled=False, gemini2_enabled
         if sonnet_enabled and effective[ANTIGRAVITY_SONNET_KEY]['status'] != 'exhausted':
             return _chosen((ANTIGRAVITY_SONNET_KEY, 'medium'), 'programmer_fallback_antigravity_sonnet_medium')
         if emergency_original and codex == 'available' and all(effective[quota_key(pair[0])]['status']=='exhausted' for pair in regular):
-            return _chosen(emergency_worker, 'programmer_emergency_original_terra_'+emergency_effort)
+            return _chosen(emergency_worker, 'programmer_emergency_original_'+emergency_model.removeprefix('gpt-6.1-')+'_'+emergency_effort)
         if programmer_account:
             return _queued("programmer_accounts_exhausted")
         if codex != "exhausted":

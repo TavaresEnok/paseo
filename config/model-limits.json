@@ -125,8 +125,8 @@
     "secondary_fallback_thinking_option": "high",
     "emergency_original_account": {
       "enabled": true,
-      "model": "codex/gpt-6.1-terra",
-      "thinking_option": "high",
+      "model": "codex/gpt-6.1-sol",
+      "thinking_option": "medium",
       "activation": "all_regular_programmers_confirmed_exhausted",
       "return": "first_confirmed_regular_recovery_in_priority_order",
       "handoff": "next_task_boundary_preserve_running_delivery"

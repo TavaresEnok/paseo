@@ -13,4 +13,11 @@ class Emergency(unittest.TestCase):
   self.e={p:{'status':'exhausted'} for p in r.PROVIDERS};self.assertTrue(self.choose()['wait'])
  def test_unknown_is_not_recovery(self):
   self.e['grok']['status']='unknown';self.assertEqual(self.choose(r.EMERGENCY_TERRA[0])['model_key'],r.EMERGENCY_TERRA[0]);self.assertNotEqual(self.choose()['model_key'],r.EMERGENCY_TERRA[0])
+ def test_configured_sol_medium_original_and_regular_recovery(self):
+  def choose():return r._select('programmer',self.e,'codex/gpt-6.1-sol',programmer_account=True,emergency_original=True,dedicated_model='gpt-6.1-sol',dedicated_effort='medium',emergency_model='gpt-6.1-sol',emergency_effort='medium')
+  self.assertEqual(choose()['model_key'],'codex/gpt-6.1-sol');self.assertEqual(choose()['thinking_option'],'medium')
+  self.e['codex-programmer']['status']='available';self.assertEqual(choose()['model_key'],'codex-programmer/gpt-6.1-sol')
+ def test_sol_high_emergency_not_part_of_this_programmer_experiment(self):
+  v=r._select('programmer',self.e,None,programmer_account=True,emergency_original=True,emergency_model='gpt-6.1-sol',emergency_effort='high')
+  self.assertTrue(v['wait'])
 if __name__=='__main__':unittest.main()
