@@ -23,8 +23,8 @@ jobs:
           cache: npm
           cache-dependency-path: tests/native-deps/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund --prefix tests/native-deps
-      - run: python3 -m unittest tests.test_audit_hardening tests.test_contingency_contract tests.test_economy tests.test_emergency_programmer tests.test_antigravity_sonnet tests.test_worker_comparison tests.test_integration_repair -v
-      - run: node --test tests/node/receiver-contract.test.mjs
+      - run: python3 -m unittest tests.test_audit_hardening tests.test_contingency_contract tests.test_economy tests.test_emergency_programmer tests.test_antigravity_sonnet tests.test_worker_comparison tests.test_integration_repair tests.test_manager_route_identity tests.test_stable_manager -v
+      - run: node --test tests/node/receiver-contract.test.mjs tests/node/staged-identity.test.mjs
       - run: node --check policy/policy.mjs && node --check native/bridge.mjs && node --check native/staged-launch.mjs
       - run: python3 deploy/hardening/prepare-worker-network.py
   network-isolation:

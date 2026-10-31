@@ -363,10 +363,11 @@ def decision_fingerprint(decision):
     selected = (decision or {}).get("selected") or {}
     body = {
         "effort": selected.get("thinking_option_id") or (decision or {}).get("thinking_option"),
-        "gpt_only": bool((decision or {}).get("gpt_only")),
-        "model": selected.get("key") or (decision or {}).get("model_key"),
-        "reason": (decision or {}).get("reason"),
+        "model": selected.get("key") or (decision or {}).get("model_key") or
+                 ((selected.get('provider') or '')+'/'+(selected.get('id') or '')),
     }
+    # Only the effective grant invalidates admission. Audit reasons and quota
+    # aggregation can change while the same model/effort remains authorized.
     return hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
@@ -992,26 +993,59 @@ def manager_launch_options(db, chat_id, cwd, prompt, idempotency_key, decision):
     return action, options
 
 
-def ensure_current_manager_ticket(db, chat_id, current, decision):
-    """Admit an existing trusted route at an idle boundary, without SDK calls."""
+def issue_manager_ticket(db, chat_id, current, decision):
+    """Issue the selected grant, including a durable same-provider transition."""
     from . import core
-    selected = decision.get("selected") or {}
-    provider, model = current.get("provider"), current.get("model")
-    from .supervision import thinking_of
-    if ((current.get("labels") or {}).get("flow.role") in {"programmer","reviewer"}
-            or selected.get("provider") != provider or selected.get("id") != model
-            or selected.get("thinking_option_id") != thinking_of(current)):
-        raise CapacityUnavailable("existing_manager_role_or_model_mismatch")
-    cwd = str(core.manager_cwd(current.get("cwd")))
-    agent = current["id"]
-    request = "adopt-manager-" + str(chat_id) + "-" + agent
-    ticket = sign_ticket({"v":1,"role":"manager","provider":provider,"model":model,
-        "effort":selected["thinking_option_id"],"request_id":request,"cwd":cwd,
-        "chat_id":str(chat_id),"agent_id":agent,"decision_fp":publish_decision(str(chat_id),"manager",decision)}, _token())
+    selected = decision['selected']
+    if ((current.get('labels') or {}).get('flow.role') in {'programmer','reviewer'}
+            or selected['provider'] != current.get('provider')):
+        raise CapacityUnavailable('existing_manager_role_or_provider_mismatch')
+    cwd = str(core.manager_cwd(current.get('cwd')))
+    agent = current['id'];provider=selected['provider'];model=selected['id']
+    request = 'adopt-manager-' + str(chat_id) + '-' + agent
+    ticket = sign_ticket({'v':1,'role':'manager','provider':provider,'model':model,
+        'effort':selected['thinking_option_id'],'request_id':request,'cwd':cwd,
+        'chat_id':str(chat_id),'agent_id':agent,'decision_fp':decision_fingerprint(decision)}, _token())
     db.execute("""INSERT OR REPLACE INTO admission_tickets(request_id,agent_id,chat_id,role,provider,model,effort,cwd,ticket_json,bound_at)
-        VALUES(?,?,?,'manager',?,?,?,?,?,?)""", (request,agent,str(chat_id),provider,model,ticket["effort"],cwd,json.dumps(ticket),time.time()))
-    _mirror_ticket(_admission_db(), agent, ticket)
+        VALUES(?,?,?,'manager',?,?,?,?,?,?)""", (request,agent,str(chat_id),provider,model,ticket['effort'],cwd,json.dumps(ticket),time.time()))
+    mirror_manager_grant(_admission_db(), agent, ticket)
     reserve_manager(db, str(chat_id), agent)
+    return ticket
+
+
+def mirror_manager_grant(path, agent_id, ticket):
+    """Publish ticket and effective decision in one SQLite transaction."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(path, timeout=15) as mirror:
+        mirror.execute("""CREATE TABLE IF NOT EXISTS current_decisions (
+            chat_id TEXT NOT NULL, role TEXT NOT NULL, fingerprint TEXT NOT NULL, updated REAL NOT NULL,
+            PRIMARY KEY(chat_id,role))""")
+        mirror.execute("""CREATE TABLE IF NOT EXISTS tickets (
+            agent_id TEXT PRIMARY KEY, request_id TEXT NOT NULL, role TEXT, provider TEXT, model TEXT,
+            effort TEXT, cwd TEXT, chat_id TEXT, mac TEXT, ticket_json TEXT NOT NULL)""")
+        mirror.execute('BEGIN IMMEDIATE')
+        mirror.execute("""INSERT INTO current_decisions VALUES(?,?,?,?) ON CONFLICT(chat_id,role)
+            DO UPDATE SET fingerprint=excluded.fingerprint,updated=excluded.updated""",
+            (ticket['chat_id'], 'manager', ticket['decision_fp'], time.time()))
+        mirror.execute('INSERT OR REPLACE INTO tickets(agent_id,request_id,role,provider,model,effort,cwd,chat_id,mac,ticket_json) VALUES(?,?,?,?,?,?,?,?,?,?)',
+            (agent_id,ticket['request_id'],'manager',ticket['provider'],ticket['model'],ticket['effort'],
+             ticket['cwd'],ticket['chat_id'],ticket['mac'],json.dumps(ticket)))
+
+
+def ensure_current_manager_ticket(db, chat_id, current, decision):
+    from .supervision import thinking_of
+    selected=decision.get('selected') or {}
+    if (selected.get('id') != current.get('model')
+            or selected.get('thinking_option_id') != thinking_of(current)):
+        raise CapacityUnavailable('existing_manager_role_or_model_mismatch')
+    return issue_manager_ticket(db, chat_id, current, decision)
+
+
+def stable_codex_manager(primary, selected):
+    """Sol/Astra use one native identity and transcript, never a replacement."""
+    return bool(primary.get('provider') == selected.get('provider') == 'codex'
+        and selected.get('id') in {'gpt-6.1-sol','gpt-6-astra'}
+        and selected.get('thinking_option_id') in ({'medium'} if selected.get('id')=='gpt-6-astra' else {'medium','high'}))
 
 
 def resume_current_manager(db, route, current, key, catalog, limits):
@@ -1139,13 +1173,38 @@ def reconcile_manager_route(db, route, agents, settings):
                      and current_effort in {'medium','high'} and effort in {'medium','high'})
     return_effort = primary_return_effort(route, primary, selected, settings)
     return_primary = return_effort is not None
-    if current_key == key and (current_effort == effort or adaptive_same) and not return_primary:
+    stable_public_return = stable_codex_manager(primary, selected) and route['active_id'] != route['primary_id']
+    if current_key == key and (current_effort == effort or adaptive_same) and not return_primary and not stable_public_return:
         if adaptive_same:
             decision = {**decision, 'selected': {**selected, 'thinking_option_id': current_effort}}
         ensure_current_manager_ticket(db, str(chat_id), current, decision)
         single_manager(db, str(chat_id), route["active_id"])
         db.commit()
         resume_current_manager(db, route, current, key, catalog, limits)
+        return True
+    if stable_codex_manager(primary, selected):
+        if supervision.busy(primary):
+            return True
+        # Keep the configured adaptive effort on the same model; a model change
+        # uses the newly selected effort (Astra is always Medium).
+        if primary.get('model') == selected['id'] and selected['id']=='gpt-6.1-sol':
+            prior_effort=supervision.thinking_of(primary)
+            if prior_effort in {'medium','high'}:
+                decision={**decision,'selected':{**selected,'thinking_option_id':prior_effort}}
+        previous=route['active_id']
+        prompt=None
+        if previous != route['primary_id']:
+            prompt=supervision.handoff(db,route,previous,key)
+        generation=int(route.get('generation') or 0)+1
+        ticket=issue_manager_ticket(db,str(chat_id),primary,decision)
+        pending={'model':ticket['model'],'effort':ticket['effort'],'previous':previous,
+                 'prompt':prompt,'message_id':str(uuid.uuid5(uuid.NAMESPACE_URL,
+                    f"stable-manager-{chat_id}-{generation}-{ticket['model']}-{ticket['effort']}"))}
+        db.execute("""UPDATE supervisor_routes SET state='switching_model',generation=?,pending=?,updated=?
+            WHERE primary_id=?""",(generation,json.dumps(pending),time.time(),route['primary_id']))
+        db.commit()
+        fresh=dict(db.execute('SELECT * FROM supervisor_routes WHERE primary_id=?',(route['primary_id'],)).fetchone())
+        supervision.transition(db,fresh,primary,settings,agents)
         return True
     generation = int(route.get("generation") or 0) + 1
     request_key = f"supervisor-route-{route['primary_id']}-{generation}-{selected['provider']}-{selected['id']}-{effort}"
@@ -1171,6 +1230,7 @@ def reconcile_manager_route(db, route, agents, settings):
     prompt = supervision.handoff(db, route, route["active_id"], key)
     action, options = manager_launch_options(db, str(chat_id), primary.get("cwd"), prompt, request_key, decision)
     reserve_manager(db, str(chat_id), options["agentId"])
+    options['workspaceId'] = primary['workspaceId']
     pending = {
         "cwd": primary.get("cwd"), "workspace_id": primary.get("workspaceId"), "prompt": prompt,
         "request_key": request_key, "options": options, "action": action,

@@ -100,6 +100,23 @@ try {
       }
       result = await client.createAgent(options); break;
     }
+    case 'manager-reconfigure': {
+      const {agent} = await client.fetchAgent(input.agentId);
+      if (agent.provider !== 'codex' || !['gpt-6.1-sol','gpt-6-astra'].includes(input.model)
+          || !(input.model === 'gpt-6-astra' ? ['medium'] : ['medium','high']).includes(input.effort))
+        throw new Error('Invalid stable manager model/effort');
+      const busy = agent.activeTurn || ['running','starting','loading','initializing'].includes(agent.status);
+      if (busy && (agent.model !== input.model || agent.thinkingOptionId !== input.effort))
+        throw new Error('Manager busy; preserve running turn');
+      if (agent.thinkingOptionId !== input.effort) await client.setAgentThinkingOption(input.agentId,input.effort);
+      if (agent.model !== input.model) await client.setAgentModel(input.agentId,input.model);
+      const fresh = (await client.fetchAgent(input.agentId)).agent;
+      if (fresh.model !== input.model || fresh.thinkingOptionId !== input.effort)
+        throw new Error('Manager setting receipt diverged');
+      await client.updateAgent(input.agentId,{name:input.model === 'gpt-6-astra' ? 'Gerente — GPT-6 Astra Médio (temporário)' : 'Gerente principal — GPT-6.1 Sol'});
+      result = {agentId:fresh.id,model:fresh.model,effort:fresh.thinkingOptionId};
+      break;
+    }
     case 'send': result = await client.sendMessage(input.agentId, input.prompt, input.options || {}); break;
     case 'stop': await client.cancelAgent(input.agentId); result = { stopped: true }; break;
     case 'permit': await client.respondToPermissionAndWait(input.agentId, input.requestId, input.response); result = { responded: true }; break;

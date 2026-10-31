@@ -21,7 +21,21 @@ export async function stagedLaunch(client, options) {
   delete createOptions.initialPrompt;
   delete createOptions.admissionTicket;
   delete createOptions.initialPromptReceived;
-  const result = await client.createAgent(createOptions);
+  let result;
+  if (expected && client.fetchAgent) {
+    try {
+      const existing = await client.fetchAgent(expected);
+      if (existing) {
+        const a = existing.agent || existing;
+        if (a?.id !== expected || a.provider !== options.provider || a.model !== options.model || a.cwd !== options.cwd)
+          throw new Error('Existing staged identity differs from the authorized request');
+        result = existing;
+      }
+    } catch(error) {
+      if (!(error.code === 'agent_not_found' || /agent.*not found/i.test(error.message || ''))) throw error;
+    }
+  }
+  if (!result) result = await client.createAgent(createOptions);
   const created = result?.agent || result;
   const agentId = created?.id || created?.agentId;
   if (expected && agentId !== expected) throw new Error('agent id diverges from the preassigned id');

@@ -391,7 +391,22 @@ def bind_jobs(db, primary, previous, destination):
 def transition(db, route, primary, settings, agents=None):
     pending = core.decode(route['pending'])
     try:
-        if route['state'] == 'switching_to_fallback':
+        if route['state'] == 'switching_model':
+            # This RPC changes settings only; no new agent, workspace or LLM turn.
+            core.bridge('manager-reconfigure', agentId=route['primary_id'],
+                        model=pending['model'], effort=pending['effort'])
+            previous=pending['previous']
+            bind_jobs(db,route['primary_id'],previous,route['primary_id'])
+            db.commit()
+            if pending.get('prompt'):
+                core.bridge('send',agentId=route['primary_id'],prompt=pending['prompt'],
+                            options={'messageId':pending['message_id'],'activeTurnBehavior':'steer'})
+            db.execute("""UPDATE supervisor_routes SET active_id=primary_id,state='primary',pending=NULL,
+                next_check=?,updated=? WHERE primary_id=?""",
+                (core.now()+30,core.now(),route['primary_id']))
+            core.event(db,'supervisor_model_changed',{'agent_id':route['primary_id'],'previous_owner':previous,
+                'model':pending['model'],'thinking':pending['effort'],'generation':route['generation']})
+        elif route['state'] == 'switching_to_fallback':
             # createAgent has a durable native receipt. A timeout repeats the
             # exact request key instead of spawning a second replacement.
             result = supervisor.start(pending['cwd'], pending['prompt'], fallback=True,
@@ -436,8 +451,15 @@ def transition(db, route, primary, settings, agents=None):
 def reconcile():
     from .operator_hold import active
     if active():return
-    entries=core.bridge('agents',timeout=20,options={'includeBackground':True}).get('entries')
-    if not isinstance(entries,list):return
+    # Fetch every page. A stale or older public manager must not disappear
+    # from routing merely because recent workers filled the first page.
+    page=core.bridge('agents',timeout=20,options={'includeBackground':True,'page':{'limit':100}})
+    entries=page.get('entries',[])
+    while (page.get('pageInfo') or {}).get('hasMore'):
+        cursor=page['pageInfo'].get('nextCursor')
+        if not cursor:raise RuntimeError('Native agent page missing cursor')
+        page=core.bridge('agents',timeout=20,options={'includeBackground':True,'page':{'limit':100,'cursor':cursor}})
+        entries.extend(page.get('entries',[]))
     agents={e.get('agent',e)['id']:e.get('agent',e) for e in entries}
     timelines={}
     for agent in agents.values():
